@@ -11,11 +11,13 @@ class Notification extends Model
 
     protected $guarded = [];
 
-    protected function casts(): array {
+    protected function casts(): array
+    {
         return ['data' => 'array'];
     }
 
-    public function user() {
+    public function user()
+    {
         $this->belongsTo(User::class);
     }
 }

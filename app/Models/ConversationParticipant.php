@@ -14,11 +14,13 @@ class ConversationParticipant extends Model
     // Không thiết lập created_at, update_at
     public $timestamps = false;
 
-    public function conversation() {
+    public function conversation()
+    {
         return $this->belongsTo(Conversation::class);
     }
 
-    public function user() {
+    public function user()
+    {
         return $this->belongsTo(User::class);
     }
 }
