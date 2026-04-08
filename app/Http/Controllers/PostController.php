@@ -11,7 +11,7 @@ class PostController extends Controller
     // Hiển thị News Feed
     public function index()
     {
-        $posts = Post::with('[user', 'originalPost.user]')
+        $posts = Post::with(['user', 'originalPost.user'])
             ->orderBy('created_at', 'desc')
             ->get();
 

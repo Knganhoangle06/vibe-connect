@@ -7,6 +7,22 @@ Route::get('/', function () {
     return view('welcome');
 });
 
+// Auto login (sử dụng cho mục đích vượt rào trong lúc chưa có login thật)
+Route::get('dev-login', function () {
+    $user = \App\Models\User::firstOrCreate(
+        ['email' => 'dev@vibe-connect.com'],
+        [
+            'name' => 'Dev Tester',
+            'password' => bcrypt('password123'),
+            'role' => 'user'
+        ]
+    );
+
+    \Illuminate\Support\Facades\Auth::login($user);
+
+    return redirect()->route('posts.index');
+});
+
 // Nhóm Route yêu cầu đăng nhập
 Route::middleware('auth')->group(function () {
     // CRUD cho Post
