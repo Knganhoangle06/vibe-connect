@@ -5,8 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Sửa bài viết</title>
-    {{-- @vite(['resources/css/app.css']) --}}
-    <link rel="stylesheet" href="/public/assets/css/app.css">
+   <link rel="stylesheet" href="{{ asset('css/app.css') }}">
 </head>
 
 <body>

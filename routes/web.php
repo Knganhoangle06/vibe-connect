@@ -8,6 +8,9 @@ use Illuminate\Support\Facades\Route;
 //     return view('welcome');
 // });
 
+// Route hiển thị trang chủ với danh sách bài đăng
+Route::get('/home', [PostController::class, 'homepage'])->name('home');
+
 // Auto login (sử dụng cho mục đích vượt rào trong lúc chưa có login thật)
 Route::get('dev-login', function () {
     $user = \App\Models\User::firstOrCreate(
@@ -21,7 +24,7 @@ Route::get('dev-login', function () {
 
     \Illuminate\Support\Facades\Auth::login($user);
 
-    return redirect()->route('posts.index');
+    return redirect()->route('home');
 });
 
 // Nhóm Route yêu cầu đăng nhập
