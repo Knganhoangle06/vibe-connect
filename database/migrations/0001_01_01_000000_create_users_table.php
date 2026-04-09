@@ -17,10 +17,18 @@ return new class extends Migration
             $table->string('email')->unique();
             $table->timestamp('email_verified_at')->nullable();
             $table->string('password');
+
+            // Phân quyền Admin/User
+            $table->enum('role', ['admin', 'user'])->default('user');
+
+            // Thông tin profile
+            $table->text('bio')->nullable();
+            $table->string('avatar')->nullable();
+
             $table->rememberToken();
             $table->timestamps();
         });
-
+        
         Schema::create('password_reset_tokens', function (Blueprint $table) {
             $table->string('email')->primary();
             $table->string('token');
