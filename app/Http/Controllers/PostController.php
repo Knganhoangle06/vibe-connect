@@ -51,7 +51,7 @@ class PostController extends Controller
             'media_type' => $request->media_type,
         ]);
 
-        return redirect()->route('posts.index')->with('success', 'Đăng bài thành công!');
+        return redirect()->route('home')->with('success', 'Đăng bài thành công!');
     }
 
     // Hiển thị Form sửa bài viết
