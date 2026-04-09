@@ -1,11 +1,12 @@
 <?php
 
 use App\Http\Controllers\PostController;
+use App\Http\Controllers\AuthController;
 use Illuminate\Support\Facades\Route;
 
-Route::get('/', function () {
-    return view('welcome');
-});
+// Route::get('/', function () {
+//     return view('welcome');
+// });
 
 // Route hiển thị trang chủ với danh sách bài đăng
 Route::get('/home', [PostController::class, 'homepage'])->name('home');
@@ -38,3 +39,11 @@ Route::middleware('auth')->group(function () {
     // Tính năng Share bài viết
     Route::post('/posts/{post}/share', [PostController::class, 'share'])->name('posts.share');
 });
+
+Route::get('/register', [AuthController::class, 'showRegister'])->name('register');
+Route::post('/register', [AuthController::class, 'register']);
+
+Route::get('/', [AuthController::class, 'showLogin'])->name('login');
+Route::post('/', [AuthController::class, 'login']);
+
+Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
