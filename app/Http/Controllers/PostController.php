@@ -44,12 +44,18 @@ class PostController extends Controller
             return back()->withErrors(['content' => 'Bài viết không được để trống.']);
         }
 
-        Post::create([
+        $post = Post::create([
             'user_id' => Auth::id(),
             'content' => $request->content,
             'media_url' => $request->media_url,
             'media_type' => $request->media_type,
         ]);
+
+        // Phải tải relationship 'user' trước khi broadcast
+        // để đoạn JS frontend nhận được event.post.user mà không bị crash
+        $post->load('user');
+
+        broadcast(new \App\Events\PostCreated($post));
 
         return redirect()->route('home')->with('success', 'Đăng bài thành công!');
     }

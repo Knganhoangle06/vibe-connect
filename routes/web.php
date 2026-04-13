@@ -24,7 +24,7 @@ Route::get('dev-login', function () {
 
     \Illuminate\Support\Facades\Auth::login($user);
 
-    return redirect()->route('/home');
+    return redirect()->route('home');
 });
 
 // Nhóm Route yêu cầu đăng nhập

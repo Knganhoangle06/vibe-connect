@@ -23,62 +23,93 @@ class DatabaseSeeder extends Seeder
         $posts = [
             // Bài đăng của Thu Trang
             [
-                'id' => 1, 'user_id' => 1, 'original_post_id' => null,
+                'id' => 1,
+                'user_id' => 1,
+                'original_post_id' => null,
                 'content' => 'Vừa học xong buổi PHP MVC tại PNV, mệt nhưng mà cuốn thực sự! Ai có tài liệu hay về Laravel không ạ?',
                 'media_url' => 'https://images.unsplash.com/photo-1599507593499-a3f7d7d97667',
-                'media_type' => 'image', 'created_at' => Carbon::now()->subDays(2)
+                'media_type' => 'image',
+                'created_at' => Carbon::now()->subDays(2)
             ],
             [
-                'id' => 2, 'user_id' => 1, 'original_post_id' => null,
+                'id' => 2,
+                'user_id' => 1,
+                'original_post_id' => null,
                 'content' => 'Review nhẹ chiếc Portfolio mình mới làm bằng HTML/CSS. Mọi người cho mình xin góp ý với nha! ✨',
                 'media_url' => 'https://images.unsplash.com/photo-1507238691740-187a5b1d37b8',
-                'media_type' => 'image', 'created_at' => Carbon::now()->subDays(1)
+                'media_type' => 'image',
+                'created_at' => Carbon::now()->subDays(1)
             ],
 
             // Bài đăng của Ngọc Anh
             [
-                'id' => 3, 'user_id' => 2, 'original_post_id' => null,
+                'id' => 3,
+                'user_id' => 2,
+                'original_post_id' => null,
                 'content' => 'Cứ ngỡ là Bug, hóa ra là tính năng... Có ai từng thức đến 2h sáng chỉ để tìm một dấu chấm phẩy chưa? 😂',
-                'media_url' => null, 'media_type' => null, 'created_at' => Carbon::now()->subHours(10)
+                'media_url' => null,
+                'media_type' => null,
+                'created_at' => Carbon::now()->subHours(10)
             ],
             [
-                'id' => 4, 'user_id' => 2, 'original_post_id' => null,
+                'id' => 4,
+                'user_id' => 2,
+                'original_post_id' => null,
                 'content' => 'Sáng nay vừa bảo vệ xong đồ án Library Management. Cảm ơn team mình rất nhiều!',
                 'media_url' => 'https://images.unsplash.com/photo-1522071820081-009f0129c71c',
-                'media_type' => 'image', 'created_at' => Carbon::now()->subHours(5)
+                'media_type' => 'image',
+                'created_at' => Carbon::now()->subHours(5)
             ],
-              
+
             // Bài đăng tuyển dụng từ Admin/OpenDev
             [
-                'id' => 5, 'user_id' => 4, 'original_post_id' => null,
+                'id' => 5,
+                'user_id' => 4,
+                'original_post_id' => null,
                 'content' => '[Hiring] OpenDev đang tìm kiếm 02 bạn thực tập sinh PHP và 01 bạn UX/UI. Môi trường cực năng động tại Đà Nẵng nhé!',
                 'media_url' => 'https://images.unsplash.com/photo-1486312338219-ce68d2c6f44d',
-                'media_type' => 'image', 'created_at' => Carbon::now()->subHours(2)
+                'media_type' => 'image',
+                'created_at' => Carbon::now()->subHours(2)
             ],
             //
-             [
-                'id' => 6, 'user_id' => 5, 'original_post_id' => null,
+            [
+                'id' => 6,
+                'user_id' => 2,
+                'original_post_id' => null,
                 'content' => 'Cứ ngỡ là Bug, hóa ra là tính năng... 😂',
-                'media_url' => null, 'media_type' => null, 'created_at' => Carbon::now()->subHours(10)
+                'media_url' => null,
+                'media_type' => null,
+                'created_at' => Carbon::now()->subHours(10)
             ],
             // Bài đăng của Lê Văn Nam
             [
-                'id' => 7, 'user_id' => 3, 'original_post_id' => null,
+                'id' => 7,
+                'user_id' => 3,
+                'original_post_id' => null,
                 'content' => 'Mới phát hiện ra bộ icon cực chất cho mấy bạn làm UX/UI nè. Link ở dưới comment nhé!',
                 'media_url' => 'https://i.pinimg.com/736x/f8/f8/ce/f8f8cec5a945d15d9d2bbc5e3fa15100.jpg',
-                'media_type' => 'image', 'created_at' => Carbon::now()->subMinutes(30)
+                'media_type' => 'image',
+                'created_at' => Carbon::now()->subMinutes(30)
             ],
 
             // CÁC BÀI SHARE (Logic original_post_id)
             [
-                'id' => 8, 'user_id' => 1, 'original_post_id' => 5, // Trang share bài tuyển dụng
+                'id' => 8,
+                'user_id' => 1,
+                'original_post_id' => 5, // Trang share bài tuyển dụng
                 'content' => 'Cơ hội tốt cho mấy ông PNV nè, apply lẹ đi!',
-                'media_url' => null, 'media_type' => null, 'created_at' => Carbon::now()->subMinutes(15)
+                'media_url' => null,
+                'media_type' => null,
+                'created_at' => Carbon::now()->subMinutes(15)
             ],
             [
-                'id' => 9, 'user_id' => 3, 'original_post_id' => 2, // Nam share bài portfolio của Trang
+                'id' => 9,
+                'user_id' => 3,
+                'original_post_id' => 2, // Nam share bài portfolio của Trang
                 'content' => 'Giao diện sạch đẹp lắm Trang ơi!',
-                'media_url' => null, 'media_type' => null, 'created_at' => Carbon::now()->subMinutes(5)
+                'media_url' => null,
+                'media_type' => null,
+                'created_at' => Carbon::now()->subMinutes(5)
             ],
         ];
 
