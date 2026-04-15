@@ -2,22 +2,26 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
-use App\Models\User;
+use Illuminate\View\View;
+use Illuminate\Http\RedirectResponse;
 
 class AuthController extends Controller
 {
-    public function showRegister() {
+    public function showRegister(): View
+    {
         return view('auth.register');
     }
 
-    public function register(Request $request) {
+    public function register(Request $request): RedirectResponse
+    {
         $request->validate([
-            'name'     => 'required',
-            'email'    => 'required|email|unique:users',
-            'password' => 'required|min:6|confirmed',
+            'name'     => 'required|string|max:255',
+            'email'    => 'required|string|email|max:255|unique:users',
+            'password' => 'required|string|min:6|confirmed',
         ]);
 
         User::create([
@@ -26,28 +30,37 @@ class AuthController extends Controller
             'password' => Hash::make($request->password),
         ]);
 
-        return redirect()->route('login');
+        return to_route('login')->with('success', 'Đăng ký thành công!');
     }
 
-    public function showLogin() {
+    public function showLogin(): View
+    {
         return view('auth.login');
     }
 
-    public function login(Request $request) {
+    public function login(Request $request): RedirectResponse
+    {
         $credentials = $request->validate([
             'email'    => 'required|email',
-            'password' => 'required',
+            'password' => 'required|string',
         ]);
 
         if (Auth::attempt($credentials)) {
-            return redirect()->route('home');
+            $request->session()->regenerate();
+
+            return to_route('home');
         }
 
-        return back()->withErrors(['email' => 'Email hoặc mật khẩu không đúng']);
+        return back()->withErrors(['email' => 'Email hoặc mật khẩu không đúng'])->onlyInput('email');
     }
 
-    public function logout() {
+    public function logout(Request $request): RedirectResponse
+    {
         Auth::logout();
-        return redirect()->route('login');
+
+        $request->session()->invalidate();
+        $request->session()->regenerateToken();
+
+        return to_route('login');
     }
 }

@@ -3,35 +3,24 @@
 namespace App\Http\Controllers;
 
 use App\Models\Post;
-use Illuminate\View\View;
+use App\Events\PostCreated;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\View\View;
+use Illuminate\Http\RedirectResponse;
 
 class PostController extends Controller
 {
-    public function homepage(): View
+    public function index(): View
     {
-        // Lấy bài đăng mới nhất kèm thông tin người dùng và bài viết gốc
         $posts = Post::with(['user', 'originalPost.user'])
                      ->latest()
                      ->get();
 
-        return view('page.homepage', compact('posts'));
+        return view('home', compact('posts'));
     }
 
-
-    // Hiển thị News Feed
-    public function index()
-    {
-        $posts = Post::with(['user', 'originalPost.user'])
-            ->orderBy('created_at', 'desc')
-            ->get();
-
-        return view('posts.index', compact('posts'));
-    }
-
-    // Xử lý đăng bài mới
-    public function store(Request $request)
+    public function store(Request $request): RedirectResponse
     {
         $request->validate([
             'content' => 'nullable|string',
@@ -39,7 +28,6 @@ class PostController extends Controller
             'media_type' => 'nullable|in:image,video'
         ]);
 
-        // Không được đăng bài trống hoàn toàn
         if (!$request->filled('content') && !$request->filled('media_url')) {
             return back()->withErrors(['content' => 'Bài viết không được để trống.']);
         }
@@ -51,18 +39,15 @@ class PostController extends Controller
             'media_type' => $request->media_type,
         ]);
 
-        // Phải tải relationship 'user' trước khi broadcast
-        // để đoạn JS frontend nhận được event.post.user mà không bị crash
         $post->load('user');
+        broadcast(new PostCreated($post));
 
-        broadcast(new \App\Events\PostCreated($post));
-
-        return redirect()->route('home')->with('success', 'Đăng bài thành công!');
+        return to_route('home')->with('success', 'Đăng bài thành công!');
     }
 
-    // Hiển thị Form sửa bài viết
-    public function edit(Post $post)
+    public function edit(Post $post): View
     {
+        // Trả lại cấu trúc if tường minh, dễ đọc và dễ mở rộng
         if ($post->user_id !== Auth::id()) {
             abort(403, 'Bạn không có quyền sửa bài viết này.');
         }
@@ -70,25 +55,25 @@ class PostController extends Controller
         return view('posts.edit', compact('post'));
     }
 
-    // Xử lý cập nhật bài viết
-    public function update(Request $request, Post $post)
+    public function update(Request $request, Post $post): RedirectResponse
     {
+        // Trả lại cấu trúc if tường minh
         if ($post->user_id !== Auth::id()) {
-            abort(403);
+            abort(403, 'Bạn không có quyền sửa bài viết này.');
         }
 
         $request->validate(['content' => 'required|string']);
 
         $post->update(['content' => $request->content]);
 
-        return redirect()->route('home')->with('success', 'Cập nhật bài viết thành công!');
+        return to_route('home')->with('success', 'Cập nhật bài viết thành công!');
     }
 
-    // Xử lý xóa bài viết
-    public function destroy(Post $post)
+    public function destroy(Post $post): RedirectResponse
     {
+        // Trả lại cấu trúc if tường minh
         if ($post->user_id !== Auth::id()) {
-            abort(403);
+            abort(403, 'Bạn không có quyền xóa bài viết này.');
         }
 
         $post->delete();
@@ -96,10 +81,9 @@ class PostController extends Controller
         return back()->with('success', 'Xóa bài viết thành công!');
     }
 
-    // Xử lý chia sẻ
-    public function share(Request $request, Post $post)
+    public function share(Request $request, Post $post): RedirectResponse
     {
-        $request->validate(['content' => 'nullable|string']); // Lời dẫn (Caption) của người chia sẻ
+        $request->validate(['content' => 'nullable|string']);
 
         $originalPostId = $post->original_post_id ?? $post->id;
 
@@ -109,6 +93,6 @@ class PostController extends Controller
             'content' => $request->content
         ]);
 
-        return redirect()->route('posts.index')->with('success', 'Chia sẻ bài viết thành công!');
+        return to_route('home')->with('success', 'Chia sẻ bài viết thành công!');
     }
 }
