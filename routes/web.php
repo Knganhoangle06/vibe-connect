@@ -47,3 +47,7 @@ Route::get('/', [AuthController::class, 'showLogin'])->name('login');
 Route::post('/', [AuthController::class, 'login']);
 
 Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
+use App\Http\Controllers\UserController;
+
+Route::get('/profile', [UserController::class, 'show']);
+Route::post('/profile', [UserController::class, 'update']);

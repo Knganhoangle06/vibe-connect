@@ -13,8 +13,8 @@ class PostController extends Controller
     {
         // Lấy bài đăng mới nhất kèm thông tin người dùng và bài viết gốc
         $posts = Post::with(['user', 'originalPost.user'])
-                     ->latest()
-                     ->get();
+                    ->latest()
+                    ->get();
 
         return view('page.homepage', compact('posts'));
     }
