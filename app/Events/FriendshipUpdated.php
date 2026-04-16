@@ -15,12 +15,16 @@ class FriendshipUpdated implements ShouldBroadcast
     public $senderId;
     public $receiverId;
     public $status;
+    public $sender;
+    public $receiver;
 
     public function __construct($senderId, $receiverId, $status)
     {
         $this->senderId = $senderId;
         $this->receiverId = $receiverId;
         $this->status = $status;
+        $this->sender = \App\Models\User::find($senderId);
+        $this->receiver = \App\Models\User::find($receiverId);
     }
 
     public function broadcastOn(): array

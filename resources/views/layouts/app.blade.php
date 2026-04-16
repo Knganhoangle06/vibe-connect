@@ -94,6 +94,39 @@
 
                             if (buttonHtml !== '') wrapper.innerHTML = buttonHtml;
                         });
+
+                        // Xử lý cập nhật DOM cho danh sách Contacts (Thêm/xóa liên hệ real-time)
+                        const contactList = document.getElementById('contact-list-container');
+                        const contactTitle = document.getElementById('contact-count-title');
+
+                        if (contactList && e.status === 'accepted') {
+                            // Rút trích đối tượng user của người đối diện
+                            const newFriend = e.senderId === currentUserId ? e.receiver : e.sender;
+
+                            // Chỉ thêm nếu họ chưa có trong danh sách
+                            if (!document.querySelector(`.contact-item[data-contact-id="${newFriend.id}"]`)) {
+                                const contactHtml = `
+                                    <div class="contact-item" data-contact-id="${newFriend.id}">
+                                        <img src="${newFriend.avatar || 'https://i.pravatar.cc/150'}" class="user-avatar-small" style="width: 36px; height: 36px; border-radius: 50%;">
+                                        <span>${newFriend.name}</span>
+                                    </div>
+                                `;
+                                contactList.insertAdjacentHTML('beforeend', contactHtml);
+
+                                if (contactTitle) contactTitle.innerText =
+                                    `Contacts (${document.querySelectorAll('.contact-item').length})`;
+                            }
+                        } else if (contactList && (e.status === 'removed' || e.status === 'declined')) {
+                            const removedFriendId = e.senderId === currentUserId ? e.receiverId : e.senderId;
+                            const contactItem = document.querySelector(
+                                `.contact-item[data-contact-id="${removedFriendId}"]`);
+
+                            if (contactItem) {
+                                contactItem.remove(); // Gỡ khỏi giao diện
+                                if (contactTitle) contactTitle.innerText =
+                                    `Contacts (${document.querySelectorAll('.contact-item').length})`;
+                            }
+                        }
                     });
             }
         </script>

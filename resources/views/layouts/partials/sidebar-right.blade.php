@@ -115,15 +115,32 @@
         </script>
     @endauth
 
-    <h4 class="sidebar-title">Contacts</h4>
-    <div class="contact-list">
-        <div class="contact-item">
-            <img src="https://i.pravatar.cc/150?u=1" class="user-avatar-small">
-            <span>Ngọc Anh</span>
+    @auth
+        @php
+            // TÌM BẠN BÈ: Tìm các mối quan hệ có status = 'accepted' liên quan đến user hiện tại
+            $acceptedFriendships = \App\Models\Friendship::where('status', 'accepted')
+                ->where(function ($query) {
+                    $query->where('sender_id', Auth::id())->orWhere('receiver_id', Auth::id());
+                })
+                ->get();
+
+            // Trích xuất ra mảng ID của bạn bè (loại trừ ID của chính mình)
+            $friendIds = $acceptedFriendships->map(function ($f) {
+                return $f->sender_id === Auth::id() ? $f->receiver_id : $f->sender_id;
+            });
+
+            $friends = \App\Models\User::whereIn('id', $friendIds)->get();
+        @endphp
+
+        <h4 class="sidebar-title" id="contact-count-title">Contacts ({{ $friends->count() }})</h4>
+        <div class="contact-list" id="contact-list-container">
+            @foreach ($friends as $friend)
+                <div class="contact-item" data-contact-id="{{ $friend->id }}">
+                    <img src="{{ $friend->avatar ?? 'https://i.pravatar.cc/150' }}" class="user-avatar-small"
+                        style="width: 36px; height: 36px; border-radius: 50%;">
+                    <span>{{ $friend->name }}</span>
+                </div>
+            @endforeach
         </div>
-        <div class="contact-item">
-            <img src="https://i.pravatar.cc/150?u=2" class="user-avatar-small">
-            <span>Thu Trang</span>
-        </div>
-    </div>
+    @endauth
 </aside>
