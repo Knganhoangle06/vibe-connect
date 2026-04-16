@@ -290,6 +290,7 @@ a {
     width: 35px; height: 35px; display: flex; align-items: center; justify-content: center; border-radius: 50%; cursor: pointer;
 }
 .menu-dots:hover { background-color: #f2f2f2; }
+
 .options-dropdown {
     display: none; position: absolute; right: 0; top: 40px; background: white; box-shadow: 0 4px 12px rgba(0,0,0,0.15); border-radius: 8px; width: 200px; z-index: 10; padding: 8px;
 }

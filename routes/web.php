@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\PostController;
 use App\Http\Controllers\AuthController;
+use App\Http\Controllers\FriendshipController;
 use Illuminate\Support\Facades\Route;
 
 // --------------------------------------------------------------------------
@@ -32,6 +33,16 @@ Route::middleware('auth')->group(function () {
 
         // Tính năng Share
         Route::post('/{post}/share', [PostController::class, 'share'])->name('share');
+    });
+
+    // ----------------------------------------------------------------------
+    // TÍNH NĂNG KẾT BẠN (FRIENDSHIPS)
+    // ----------------------------------------------------------------------
+    Route::prefix('friendships')->name('friendships.')->group(function () {
+        Route::post('/add/{user}', [FriendshipController::class, 'add'])->name('add');
+        Route::post('/accept/{user}', [FriendshipController::class, 'accept'])->name('accept');
+        Route::post('/decline/{user}', [FriendshipController::class, 'decline'])->name('decline');
+        Route::delete('/remove/{user}', [FriendshipController::class, 'remove'])->name('remove');
     });
 
     // Đăng xuất
