@@ -13,11 +13,56 @@ class DatabaseSeeder extends Seeder
     {
         // 1. DỮ LIỆU USER (Thêm vài gương mặt mới cho xôm)
         DB::table('users')->insert([
-            ['id' => 1, 'name' => 'Nguyễn Thu Trang', 'email' => 'trang@pnv.edu.vn', 'password' => Hash::make('123'), 'role' => 'user', 'bio' => 'Gen Z học Code 💻', 'avatar' => 'https://i.pravatar.cc/150?u=1', 'created_at' => now()],
-            ['id' => 2, 'name' => 'Ngọc Anh', 'email' => 'anh@pnv.edu.vn', 'password' => Hash::make('123'), 'role' => 'user', 'bio' => 'Chuyên gia Debug dạo', 'avatar' => 'https://i.pravatar.cc/150?u=2', 'created_at' => now()],
-            ['id' => 3, 'name' => 'Lê Văn Nam', 'email' => 'namle@example.com', 'password' => Hash::make('123'), 'role' => 'user', 'bio' => 'Thích Laravel và UI/UX', 'avatar' => 'https://i.pravatar.cc/150?u=3', 'created_at' => now()],
-            ['id' => 4, 'name' => 'OpenDev Recruitment', 'email' => 'hr@opendev.com', 'password' => Hash::make('123'), 'role' => 'admin', 'bio' => 'Kênh tuyển dụng IT chính thức', 'avatar' => 'https://i.pravatar.cc/150?u=4', 'created_at' => now()],
-        ]);
+            [
+                'id' => 1, 
+                'name' => 'Nguyễn Thu Trang', 
+                'email' => 'trang@pnv.edu.vn', 
+                'password' => Hash::make('123'), 
+                'role' => 'user', 'bio' => 'Gen Z học Code 💻', 
+                'avatar' => 'https://i.pinimg.com/1200x/0c/3f/86/0c3f86b69a16a7864344c4141400f8da.jpg', 
+                'created_at' => now()],
+            [
+                'id' => 2, 
+                'name' => 'Ngọc Anh', 
+                'email' => 'anh@pnv.edu.vn', 
+                'password' => Hash::make('123'), 
+                'role' => 'user', 
+                'bio' => 'Chuyên gia Debug dạo', 
+                'avatar' => 'https://i.pinimg.com/1200x/01/07/65/01076575bce9b4f2a97847f3c45e3f99.jpg', 
+                'created_at' => now()
+            ],
+            [
+                'id' => 3, 
+                'name' => 'Lê Văn Nam', 
+                'email' => 'namle@example.com', 
+                'password' => Hash::make('123'), 
+                'role' => 'user', 
+                'bio' => 'Thích Laravel và UI/UX', 
+                'avatar' => 'https://i.pinimg.com/736x/5e/77/eb/5e77ebf8952632197edaa34fa46502eb.jpg', 
+                'created_at' => now()
+            ],
+            [
+                'id' => 4, 
+                'name' => 'OpenDev Recruitment', 
+                'email' => 'hr@opendev.com', 
+                'password' => Hash::make('123'), 
+                'role' => 'admin', 
+                'bio' => 'Kênh tuyển dụng IT chính thức', 
+                'avatar' => 'https://i.pinimg.com/736x/7d/03/e2/7d03e2d3354ea97f1532e6d7a46b98a5.jpg', 
+                'created_at' => now()
+            ],
+            [
+                'id' => 5, 
+                'name' => 'Nguyễn Thùy Trang', 
+                'email' => 'thuytrangpnv27@gmail.com', 
+                'password' => Hash::make('trang12345'), 
+                'role' => 'admin', 
+                'bio' => 'Kênh tuyển dụng IT chính thức', 
+                'avatar' => 'https://i.pinimg.com/736x/7d/03/e2/7d03e2d3354ea97f1532e6d7a46b98a5.jpg', 
+                'created_at' => now()
+            ],
+        ])
+        ;
 
         // 2. DỮ LIỆU BÀI ĐĂNG (POSTS) - NHIỀU VÀ THẬT
         $posts = [
@@ -57,7 +102,7 @@ class DatabaseSeeder extends Seeder
             ],
             //
              [
-                'id' => 6, 'user_id' => 5, 'original_post_id' => null,
+                'id' => 6, 'user_id' => 2, 'original_post_id' => null,
                 'content' => 'Cứ ngỡ là Bug, hóa ra là tính năng... 😂',
                 'media_url' => null, 'media_type' => null, 'created_at' => Carbon::now()->subHours(10)
             ],
@@ -110,6 +155,14 @@ class DatabaseSeeder extends Seeder
             ['user_id' => 2, 'post_id' => 5, 'type' => 'love', 'created_at' => now()],
             ['user_id' => 3, 'post_id' => 5, 'type' => 'like', 'created_at' => now()],
             ['user_id' => 4, 'post_id' => 1, 'type' => 'wow', 'created_at' => now()],
+            ['user_id' => 5, 'post_id' => 1, 'type' => 'angry', 'created_at' => now()],
+        ]);
+
+        // 5. BẠN BÈ
+        DB::table('friendships')->insert([
+            ['sender_id' => 5, 'receiver_id' => 2, 'status' => 'accepted', 'created_at' => now()],
+            ['sender_id' => 5, 'receiver_id' => 1, 'status' => 'accepted', 'created_at' => now()],
+            ['sender_id' => 5, 'receiver_id' => 3, 'status' => 'pending', 'created_at' => now()],
         ]);
     }
 }

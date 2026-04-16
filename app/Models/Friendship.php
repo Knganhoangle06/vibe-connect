@@ -18,6 +18,6 @@ class Friendship extends Model
 
     public function receiver()
     {
-        return $this->belongsTo(User::class, 'recevier_id');
+        return $this->belongsTo(User::class, 'receiver_id');
     }
 }

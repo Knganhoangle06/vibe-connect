@@ -1,49 +1,45 @@
 <?php
 
-use App\Http\Controllers\PostController;
 use App\Http\Controllers\AuthController;
+use App\Http\Controllers\CommentController;
+use App\Http\Controllers\FriendshipController;
+use App\Http\Controllers\PostController;
+use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\SearchController;
 use Illuminate\Support\Facades\Route;
 
-Route::get('/', function () {
-    return redirect()->route('home');
-});
+Route::get('/', [AuthController::class, 'showLogin'])->name('login');
+Route::post('/', [AuthController::class, 'login'])->name('login.submit');
 
-// Route hiển thị trang chủ với danh sách bài đăng
-Route::get('/home', [PostController::class, 'homepage'])->name('home');
+Route::get('/register', [AuthController::class, 'showRegister'])->name('register');
+Route::post('/register', [AuthController::class, 'register']);
 
-// Auto login (sử dụng cho mục đích vượt rào trong lúc chưa có login thật)
-Route::get('dev-login', function () {
-    $user = \App\Models\User::firstOrCreate(
-        ['email' => 'dev@vibe-connect.com'],
-        [
-            'name' => 'Dev Tester',
-            'password' => bcrypt('password123'),
-            'role' => 'user'
-        ]
-    );
+Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
 
-    \Illuminate\Support\Facades\Auth::login($user);
-
-    return redirect()->route('/home');
-});
-
-// Nhóm Route yêu cầu đăng nhập
 Route::middleware('auth')->group(function () {
-    // CRUD cho Post
+    Route::get('/home', [PostController::class, 'homepage'])->name('home');
+
     Route::get('/posts', [PostController::class, 'index'])->name('posts.index');
     Route::post('/posts', [PostController::class, 'store'])->name('posts.store');
     Route::get('/posts/{post}/edit', [PostController::class, 'edit'])->name('posts.edit');
     Route::put('/posts/{post}', [PostController::class, 'update'])->name('posts.update');
     Route::delete('/posts/{post}', [PostController::class, 'destroy'])->name('posts.destroy');
 
-    // Tính năng Share bài viết
+    Route::post('/posts/{post}/reaction', [PostController::class, 'toggleReaction'])->name('posts.reaction.toggle');
     Route::post('/posts/{post}/share', [PostController::class, 'share'])->name('posts.share');
+
+    Route::post('/posts/{post}/comments', [CommentController::class, 'store'])->name('comments.store');
+    Route::delete('/comments/{comment}', [CommentController::class, 'destroy'])->name('comments.destroy');
+
+    Route::get('/profile', [ProfileController::class, 'myProfile'])->name('profile.me');
+    Route::get('/profile/{user}', [ProfileController::class, 'show'])->name('profile.show');
+    Route::put('/profile', [ProfileController::class, 'update'])->name('profile.update');
+
+    Route::get('/search', [SearchController::class, 'index'])->name('search.index');
+
+    // Xem danh sách lời mời
+    Route::get('/friend-requests', [FriendshipController::class, 'friendRequests'])->name('friend.show');
+    Route::post('/friends/{user}/request', [FriendshipController::class, 'send'])->name('friends.request');
+    Route::post('/friends/{user}/accept', [FriendshipController::class, 'accept'])->name('friends.accept');
+    Route::delete('/friends/{user}', [FriendshipController::class, 'remove'])->name('friends.remove');
 });
-
-Route::get('/register', [AuthController::class, 'showRegister'])->name('register');
-Route::post('/register', [AuthController::class, 'register']);
-
-Route::get('/', [AuthController::class, 'showLogin'])->name('login');
-Route::post('/', [AuthController::class, 'login']);
-
-Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
