@@ -4,9 +4,9 @@ use App\Http\Controllers\PostController;
 use App\Http\Controllers\AuthController;
 use Illuminate\Support\Facades\Route;
 
-// Route::get('/', function () {
-//     return view('welcome');
-// });
+Route::get('/', function () {
+    return redirect()->route('home');
+});
 
 // Route hiển thị trang chủ với danh sách bài đăng
 Route::get('/home', [PostController::class, 'homepage'])->name('home');
@@ -24,7 +24,7 @@ Route::get('dev-login', function () {
 
     \Illuminate\Support\Facades\Auth::login($user);
 
-    return redirect()->route('home');
+    return redirect()->route('/home');
 });
 
 // Nhóm Route yêu cầu đăng nhập

@@ -40,7 +40,7 @@ class AuthController extends Controller
         ]);
 
         if (Auth::attempt($credentials)) {
-            return redirect()->route('posts.index');
+            return redirect()->route('home');
         }
 
         return back()->withErrors(['email' => 'Email hoặc mật khẩu không đúng']);

@@ -9,7 +9,7 @@
 <body class="bg-light min-vh-100 d-flex align-items-center justify-content-center">
     <div class="card shadow-sm border-0 rounded-4 p-4" style="width: 100%; max-width: 420px;">
         <h2 class="fw-bold fs-4 mb-1">Tạo tài khoản</h2>
-        <p class="text-muted small mb-4">Tham gia Vibe Connect ngay hôm nay</p>git p
+        <p class="text-muted small mb-4">Tham gia Vibe Connect ngay hôm nay</p>
 
         <form action="{{ route('register') }}" method="POST">
             @csrf
