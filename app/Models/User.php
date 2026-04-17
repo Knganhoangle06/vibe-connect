@@ -12,7 +12,40 @@ class User extends Authenticatable
     /** @use HasFactory<UserFactory> */
     use HasFactory, Notifiable;
 
-    protected $guarded = [];
+    /**
+     * Các thuộc tính được phép gán hàng loạt (Mass Assignment).
+     */
+    protected $fillable = [
+        'name',
+        'email',
+        'password',
+        'role',
+        'bio',
+        'avatar',
+    ];
+
+    /**
+     * Các thuộc tính cần được ẩn đi khi model chuyển thành mảng hoặc JSON.
+     */
+    protected $hidden = [
+        'password',
+        'remember_token',
+    ];
+
+    /**
+     * Định nghĩa kiểu dữ liệu (Casting) chuẩn Laravel 11.
+     */
+    protected function casts(): array
+    {
+        return [
+            'email_verified_at' => 'datetime',
+            'password' => 'hashed',
+        ];
+    }
+
+    // =========================================================================
+    // RELATIONSHIPS (Giữ nguyên cấu trúc của team)
+    // =========================================================================
 
     public function posts()
     {

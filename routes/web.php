@@ -1,50 +1,45 @@
 <?php
 
-use App\Http\Controllers\PostController;
 use App\Http\Controllers\AuthController;
+use App\Http\Controllers\CommentController;
 use App\Http\Controllers\FriendshipController;
+use App\Http\Controllers\PostController;
+use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\SearchController;
 use Illuminate\Support\Facades\Route;
 
-// --------------------------------------------------------------------------
-// GUEST ROUTES (Chưa đăng nhập)
-// --------------------------------------------------------------------------
-Route::middleware('guest')->group(function () {
-    Route::get('/', [AuthController::class, 'showLogin'])->name('login');
-    Route::post('/', [AuthController::class, 'login']);
+Route::get('/', [AuthController::class, 'showLogin'])->name('login');
+Route::post('/', [AuthController::class, 'login'])->name('login.submit');
 
-    Route::get('/register', [AuthController::class, 'showRegister'])->name('register');
-    Route::post('/register', [AuthController::class, 'register']);
-});
+Route::get('/register', [AuthController::class, 'showRegister'])->name('register');
+Route::post('/register', [AuthController::class, 'register']);
 
-// --------------------------------------------------------------------------
-// AUTH ROUTES (Đã đăng nhập)
-// --------------------------------------------------------------------------
+Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
+
 Route::middleware('auth')->group(function () {
+    Route::get('/home', [PostController::class, 'homepage'])->name('home');
 
-    // News Feed chính
-    Route::get('/home', [PostController::class, 'index'])->name('home');
+    Route::get('/posts', [PostController::class, 'index'])->name('posts.index');
+    Route::post('/posts', [PostController::class, 'store'])->name('posts.store');
+    Route::get('/posts/{post}/edit', [PostController::class, 'edit'])->name('posts.edit');
+    Route::put('/posts/{post}', [PostController::class, 'update'])->name('posts.update');
+    Route::delete('/posts/{post}', [PostController::class, 'destroy'])->name('posts.destroy');
 
-    // Quản lý Bài viết
-    Route::prefix('posts')->name('posts.')->group(function () {
-        Route::post('/', [PostController::class, 'store'])->name('store');
-        Route::get('/{post}/edit', [PostController::class, 'edit'])->name('edit');
-        Route::put('/{post}', [PostController::class, 'update'])->name('update');
-        Route::delete('/{post}', [PostController::class, 'destroy'])->name('destroy');
+    Route::post('/posts/{post}/reaction', [PostController::class, 'toggleReaction'])->name('posts.reaction.toggle');
+    Route::post('/posts/{post}/share', [PostController::class, 'share'])->name('posts.share');
 
-        // Tính năng Share
-        Route::post('/{post}/share', [PostController::class, 'share'])->name('share');
-    });
+    Route::post('/posts/{post}/comments', [CommentController::class, 'store'])->name('comments.store');
+    Route::delete('/comments/{comment}', [CommentController::class, 'destroy'])->name('comments.destroy');
 
-    // ----------------------------------------------------------------------
-    // TÍNH NĂNG KẾT BẠN (FRIENDSHIPS)
-    // ----------------------------------------------------------------------
-    Route::prefix('friendships')->name('friendships.')->group(function () {
-        Route::post('/add/{user}', [FriendshipController::class, 'add'])->name('add');
-        Route::post('/accept/{user}', [FriendshipController::class, 'accept'])->name('accept');
-        Route::post('/decline/{user}', [FriendshipController::class, 'decline'])->name('decline');
-        Route::delete('/remove/{user}', [FriendshipController::class, 'remove'])->name('remove');
-    });
+    Route::get('/profile', [ProfileController::class, 'myProfile'])->name('profile.me');
+    Route::get('/profile/{user}', [ProfileController::class, 'show'])->name('profile.show');
+    Route::put('/profile', [ProfileController::class, 'update'])->name('profile.update');
 
-    // Đăng xuất
-    Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
+    Route::get('/search', [SearchController::class, 'index'])->name('search.index');
+
+    // Xem danh sách lời mời
+    Route::get('/friend-requests', [FriendshipController::class, 'friendRequests'])->name('friend.show');
+    Route::post('/friends/{user}/request', [FriendshipController::class, 'send'])->name('friends.request');
+    Route::post('/friends/{user}/accept', [FriendshipController::class, 'accept'])->name('friends.accept');
+    Route::delete('/friends/{user}', [FriendshipController::class, 'remove'])->name('friends.remove');
 });
