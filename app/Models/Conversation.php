@@ -13,7 +13,8 @@ class Conversation extends Model
 
     public function participants()
     {
-        return $this->hasMany(Conversation::class);
+        // ĐÃ SỬA LỖI: Trỏ đúng về ConversationParticipant thay vì tự trỏ vào chính Conversation
+        return $this->hasMany(ConversationParticipant::class);
     }
 
     public function users()

@@ -136,8 +136,11 @@
         <div class="contact-list" id="contact-list-container">
             @foreach ($friends as $friend)
                 <div class="contact-item" data-contact-id="{{ $friend->id }}">
-                    <img src="{{ $friend->avatar ?? 'https://i.pravatar.cc/150' }}" class="user-avatar-small"
-                        style="width: 36px; height: 36px; border-radius: 50%;">
+                    <div class="user-avatar-wrapper">
+                        <img src="{{ $friend->avatar ?? 'https://i.pravatar.cc/150' }}" class="user-avatar-small"
+                            style="width: 36px; height: 36px; border-radius: 50%;">
+                        <div class="status-dot user-status-{{ $friend->id }}"></div>
+                    </div>
                     <span>{{ $friend->name }}</span>
                 </div>
             @endforeach

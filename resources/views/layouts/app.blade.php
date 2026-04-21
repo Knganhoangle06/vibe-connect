@@ -107,7 +107,10 @@
                             if (!document.querySelector(`.contact-item[data-contact-id="${newFriend.id}"]`)) {
                                 const contactHtml = `
                                     <div class="contact-item" data-contact-id="${newFriend.id}">
-                                        <img src="${newFriend.avatar || 'https://i.pravatar.cc/150'}" class="user-avatar-small" style="width: 36px; height: 36px; border-radius: 50%;">
+                                        <div class="user-avatar-wrapper">
+                                            <img src="${newFriend.avatar || 'https://i.pravatar.cc/150'}" class="user-avatar-small" style="width: 36px; height: 36px; border-radius: 50%;">
+                                            <div class="status-dot user-status-${newFriend.id}"></div>
+                                        </div>
                                         <span>${newFriend.name}</span>
                                     </div>
                                 `;
