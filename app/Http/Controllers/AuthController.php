@@ -18,12 +18,14 @@ class AuthController extends Controller
             'name'     => 'required',
             'email'    => 'required|email|unique:users',
             'password' => 'required|min:6|confirmed',
+            'gender'   => 'required|in:male,female,other',
         ]);
 
         User::create([
             'name'     => $request->name,
             'email'    => $request->email,
             'password' => Hash::make($request->password),
+            'gender'   => $request->gender,
         ]);
 
         return redirect()->route('login');
@@ -38,6 +40,12 @@ class AuthController extends Controller
             'email'    => 'required|email',
             'password' => 'required',
         ]);
+
+        $user = User::query()->where('email', $credentials['email'])->first();
+
+        if ($user && $user->is_locked) {
+            return back()->withErrors(['email' => 'Tài khoản của bạn đang bị khóa. Vui lòng liên hệ admin.']);
+        }
 
         if (Auth::attempt($credentials)) {
             return redirect()->route('home');

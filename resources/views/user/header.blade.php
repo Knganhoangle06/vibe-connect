@@ -6,21 +6,37 @@
         </form>
     </div>
     <div class="nav-icon">
-        <a href="{{ route('home') }}"><i class="fa-solid fa-house icon"></i></a>
-        <a href="{{ route('search.index') }}"><i class="fa-solid fa-globe icon"></i></a>
-        <a href="{{ route('friend.show') }}"><i class="fa-solid fa-user icon"></i></a>
+        <a href="{{ route('home') }}" class="{{ request()->routeIs('home') ? 'active' : '' }}" title="Bảng tin">
+            <i class="fa-solid fa-house icon"></i><span>Bảng tin</span>
+        </a>
+        <a href="{{ route('search.index') }}" class="{{ request()->routeIs('search.index') ? 'active' : '' }}" title="Khám phá">
+            <i class="fa-solid fa-compass icon"></i><span>Khám phá</span>
+        </a>
+        <a href="{{ route('friend.show') }}" class="{{ request()->routeIs('friend.show') ? 'active' : '' }}" title="Bạn bè">
+            <i class="fa-solid fa-user-group icon"></i><span>Bạn bè</span>
+        </a>
+        <a href="{{ route('messages.index') }}" class="{{ request()->routeIs('messages.*') ? 'active' : '' }}" title="Nhắn tin">
+            <i class="fa-solid fa-message icon"></i><span>Tin nhắn</span>
+        </a>
+        @if(Auth::user()?->role === 'admin')
+            <a href="{{ route('admin.dashboard') }}" class="{{ request()->routeIs('admin.*') ? 'active' : '' }}" title="Quản trị">
+                <i class="fa-solid fa-chart-line icon"></i><span>Admin</span>
+            </a>
+        @endif
     </div>
 
    <div class="profile-menu-wrapper">
     <button type="button" class="avatar-toggle" onclick="toggleProfileMenu(event)">
-        <img src="{{ Auth::user()->avatar ?? 'https://i.pravatar.cc/150?u=me' }}" class="user-pic">
+        <img src="{{ Auth::user()->avatar ? (filter_var(Auth::user()->avatar, FILTER_VALIDATE_URL) ? Auth::user()->avatar : asset('storage/' . Auth::user()->avatar)) : asset('images/default-avatar.png') }}" 
+             class="user-pic">
         <i class="fa-solid fa-chevron-down arrow-icon"></i>
     </button>
 
     <div class="profile-dropdown" id="profileDropdown">
         <div class="user-info-card">
             <div class="user-info-header">
-                <img src="{{ Auth::user()->avatar ?? 'https://i.pravatar.cc/150?u=me' }}" class="user-pic-large">
+               <img src="{{ Auth::user()->avatar ? (filter_var(Auth::user()->avatar, FILTER_VALIDATE_URL) ? Auth::user()->avatar : asset('storage/' . Auth::user()->avatar)) : asset('images/default-avatar.png') }}" 
+                     class="user-pic-large">
                 <span class="user-name">{{ Auth::user()->name }}</span>
             </div>
             <hr>

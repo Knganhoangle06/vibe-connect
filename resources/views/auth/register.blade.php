@@ -29,6 +29,17 @@
             </div>
 
             <div class="mb-3">
+                <label class="form-label fw-medium small">Giới tính</label>
+                <select name="gender" class="form-control rounded-3 @error('gender') is-invalid @enderror">
+                    <option value="">-- Chọn giới tính --</option>
+                    <option value="male" {{ old('gender') === 'male' ? 'selected' : '' }}>Nam</option>
+                    <option value="female" {{ old('gender') === 'female' ? 'selected' : '' }}>Nữ</option>
+                    <option value="other" {{ old('gender') === 'other' ? 'selected' : '' }}>Khác</option>
+                </select>
+                @error('gender') <div class="invalid-feedback">{{ $message }}</div> @enderror
+            </div>
+
+            <div class="mb-3">
                 <label class="form-label fw-medium small">Mật khẩu</label>
                 <input type="password" name="password" class="form-control rounded-3 @error('password') is-invalid @enderror"
                     placeholder="••••••••">

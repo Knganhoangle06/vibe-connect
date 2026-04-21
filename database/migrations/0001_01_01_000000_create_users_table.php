@@ -17,13 +17,14 @@ return new class extends Migration
             $table->string('email')->unique();
             $table->timestamp('email_verified_at')->nullable();
             $table->string('password');
-
+            $table->enum('gender', ['male', 'female'])->default('male');
             // Phân quyền Admin/User
             $table->enum('role', ['admin', 'user'])->default('user');
 
             // Thông tin profile
             $table->text('bio')->nullable();
             $table->string('avatar')->nullable();
+            $table->string('background')->nullable();
 
             $table->rememberToken();
             $table->timestamps();

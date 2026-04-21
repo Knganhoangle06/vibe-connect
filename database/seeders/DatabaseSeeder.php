@@ -18,17 +18,21 @@ class DatabaseSeeder extends Seeder
                 'name' => 'Nguyễn Thu Trang', 
                 'email' => 'trang@pnv.edu.vn', 
                 'password' => Hash::make('123'), 
+                'gender' => 'female',
                 'role' => 'user', 'bio' => 'Gen Z học Code 💻', 
                 'avatar' => 'https://i.pinimg.com/1200x/0c/3f/86/0c3f86b69a16a7864344c4141400f8da.jpg', 
+                'background' => 'https://i.pinimg.com/1200x/0c/3f/86/0c3f86b69a16a7864344c4141400f8da.jpg', 
                 'created_at' => now()],
             [
                 'id' => 2, 
                 'name' => 'Ngọc Anh', 
                 'email' => 'anh@pnv.edu.vn', 
                 'password' => Hash::make('123'), 
+                'gender' => 'female',
                 'role' => 'user', 
                 'bio' => 'Chuyên gia Debug dạo', 
                 'avatar' => 'https://i.pinimg.com/1200x/01/07/65/01076575bce9b4f2a97847f3c45e3f99.jpg', 
+                'background' => 'https://i.pinimg.com/1200x/0c/3f/86/0c3f86b69a16a7864344c4141400f8da.jpg', 
                 'created_at' => now()
             ],
             [
@@ -36,9 +40,11 @@ class DatabaseSeeder extends Seeder
                 'name' => 'Lê Văn Nam', 
                 'email' => 'namle@example.com', 
                 'password' => Hash::make('123'), 
+                'gender' => 'male',
                 'role' => 'user', 
                 'bio' => 'Thích Laravel và UI/UX', 
                 'avatar' => 'https://i.pinimg.com/736x/5e/77/eb/5e77ebf8952632197edaa34fa46502eb.jpg', 
+                'background' => 'https://i.pinimg.com/1200x/0c/3f/86/0c3f86b69a16a7864344c4141400f8da.jpg', 
                 'created_at' => now()
             ],
             [
@@ -46,9 +52,11 @@ class DatabaseSeeder extends Seeder
                 'name' => 'OpenDev Recruitment', 
                 'email' => 'hr@opendev.com', 
                 'password' => Hash::make('123'), 
+                'gender' => 'female',
                 'role' => 'admin', 
                 'bio' => 'Kênh tuyển dụng IT chính thức', 
                 'avatar' => 'https://i.pinimg.com/736x/7d/03/e2/7d03e2d3354ea97f1532e6d7a46b98a5.jpg', 
+                'background' => 'https://i.pinimg.com/1200x/0c/3f/86/0c3f86b69a16a7864344c4141400f8da.jpg', 
                 'created_at' => now()
             ],
             [
@@ -56,9 +64,11 @@ class DatabaseSeeder extends Seeder
                 'name' => 'Nguyễn Thùy Trang', 
                 'email' => 'thuytrangpnv27@gmail.com', 
                 'password' => Hash::make('trang12345'), 
+                 'gender' => 'female',
                 'role' => 'admin', 
                 'bio' => 'Kênh tuyển dụng IT chính thức', 
                 'avatar' => 'https://i.pinimg.com/736x/7d/03/e2/7d03e2d3354ea97f1532e6d7a46b98a5.jpg', 
+                'background' => 'https://i.pinimg.com/1200x/0c/3f/86/0c3f86b69a16a7864344c4141400f8da.jpg', 
                 'created_at' => now()
             ],
         ])

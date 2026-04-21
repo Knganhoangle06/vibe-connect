@@ -1,8 +1,10 @@
 <?php
 
 use App\Http\Controllers\AuthController;
+use App\Http\Controllers\AdminController;
 use App\Http\Controllers\CommentController;
 use App\Http\Controllers\FriendshipController;
+use App\Http\Controllers\MessageController;
 use App\Http\Controllers\PostController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\SearchController;
@@ -36,10 +38,20 @@ Route::middleware('auth')->group(function () {
     Route::put('/profile', [ProfileController::class, 'update'])->name('profile.update');
 
     Route::get('/search', [SearchController::class, 'index'])->name('search.index');
+    Route::get('/messages', [MessageController::class, 'index'])->name('messages.index');
+    Route::post('/messages/{conversation}', [MessageController::class, 'send'])->name('messages.send');
 
     // Xem danh sách lời mời
     Route::get('/friend-requests', [FriendshipController::class, 'friendRequests'])->name('friend.show');
     Route::post('/friends/{user}/request', [FriendshipController::class, 'send'])->name('friends.request');
     Route::post('/friends/{user}/accept', [FriendshipController::class, 'accept'])->name('friends.accept');
     Route::delete('/friends/{user}', [FriendshipController::class, 'remove'])->name('friends.remove');
+});
+
+Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(function () {
+    Route::get('/dashboard', [AdminController::class, 'dashboard'])->name('dashboard');
+    Route::get('/users', [AdminController::class, 'users'])->name('users.index');
+    Route::patch('/users/{user}/lock', [AdminController::class, 'toggleLock'])->name('users.lock');
+    Route::get('/posts', [AdminController::class, 'posts'])->name('posts.index');
+    Route::delete('/posts/{post}', [AdminController::class, 'destroyPost'])->name('posts.destroy');
 });

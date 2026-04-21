@@ -36,7 +36,10 @@ class CommentController extends Controller
             'parent_id' => $parentId,
         ]);
 
-        return back()->with('success', $parentId ? 'Đã trả lời bình luận!' : 'Đã đăng bình luận!');
+        return back()->with([
+            'success' => $parentId ? 'Đã trả lời bình luận!' : 'Đã đăng bình luận!',
+            'open_comments_post_id' => $post->id,
+        ]);
     }
 
     public function destroy(Comment $comment)
@@ -47,8 +50,12 @@ class CommentController extends Controller
             return back()->with('error', 'Bạn không có quyền xóa bình luận này.');
         }
 
+        $postId = $comment->post_id;
         $comment->delete();
 
-        return back()->with('success', 'Đã xóa bình luận!');
+        return back()->with([
+            'success' => 'Đã xóa bình luận!',
+            'open_comments_post_id' => $postId,
+        ]);
     }
 }
