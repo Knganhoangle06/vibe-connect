@@ -30,7 +30,7 @@
             <div class="mb-4">
                 <div class="d-flex justify-content-between align-items-center mb-1">
                     <label class="form-label fw-medium small mb-0">Mật khẩu</label>
-                    <a href="#" class="small text-primary text-decoration-none fw-medium">Quên mật khẩu?</a>
+                    <a href="#" class="small text-primary text-decoration-none fw-medium"></a>
                 </div>
                 <input type="password" name="password" class="form-control rounded-3 @error('password') is-invalid @enderror"
                     placeholder="••••••••">

@@ -13,7 +13,7 @@ class Conversation extends Model
 
     public function participants()
     {
-        return $this->hasMany(Conversation::class);
+        return $this->hasMany(ConversationParticipant::class);
     }
 
     public function users()
