@@ -41,6 +41,15 @@ Route::middleware('auth')->group(function () {
     Route::get('/messages', [MessageController::class, 'index'])->name('messages.index');
     Route::post('/messages/{conversation}', [MessageController::class, 'send'])->name('messages.send');
 
+    // MESSAGES (Lấy từ nhánh friendships)
+    Route::prefix('messages')->name('messages.')->group(function () {
+        Route::post('/start/{user}', [\App\Http\Controllers\MessageController::class, 'createConversation'])->name('start');
+        Route::get('/{conversationId?}', [\App\Http\Controllers\MessageController::class, 'index'])->name('index')->where('conversationId', '[0-9]+');
+        Route::post('/{conversation}', [\App\Http\Controllers\MessageController::class, 'store'])->name('store');
+        Route::delete('/{message}/unsend', [\App\Http\Controllers\MessageController::class, 'destroyMessage'])->name('unsend');
+        Route::delete('/conversation/{conversation}/remove', [\App\Http\Controllers\MessageController::class, 'destroyConversation'])->name('remove_conversation');
+    });
+
     // Xem danh sách lời mời
     Route::get('/friend-requests', [FriendshipController::class, 'friendRequests'])->name('friend.show');
     Route::post('/friends/{user}/request', [FriendshipController::class, 'send'])->name('friends.request');

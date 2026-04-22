@@ -34,7 +34,6 @@ class FriendshipController extends Controller
                 return back()->with('error', 'Bạn đã gửi lời mời trước đó.');
             }
 
-            // Nếu phía bên kia đã gửi trước, auto chấp nhận luôn.
             $existing->update(['status' => 'accepted']);
             return back()->with('success', 'Đã chấp nhận lời mời kết bạn.');
         }
@@ -76,15 +75,15 @@ class FriendshipController extends Controller
     }
 
     public function friendRequests()
-{
-    $userId = Auth::id(); // Lấy ID của bạn
+    {
+        $userId = Auth::id();
 
-    // Lấy các lời mời mà bạn là người nhận và trạng thái là đang chờ
-    $requests = \App\Models\Friendship::where('receiver_id', $userId)
-        ->where('status', 'pending')
-        ->with('sender') // Lấy thông tin người gửi lời mời
-        ->get();
+        $requests = \App\Models\Friendship::where('receiver_id', $userId)
+            ->where('status', 'pending')
+            ->with('sender')
+            ->get();
 
-    return view('page.friends', compact('requests'));
-}
+        // ĐÃ CHỈNH SỬA: Trả về view 'friends.index' theo cấu trúc chuẩn
+        return view('friends.index', compact('requests'));
+    }
 }

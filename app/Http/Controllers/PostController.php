@@ -57,11 +57,11 @@ class PostController extends Controller
             ->latest()
             ->paginate(10);
 
-        return view('page.homepage', compact('posts', 'friends', 'pendingRequests'));
+        // ĐÃ CHỈNH SỬA: Trả về view 'home' theo cấu trúc chuẩn
+        return view('home', compact('posts', 'friends', 'pendingRequests'));
     }
 
 
-    // Hiển thị News Feed
     public function index()
     {
         $posts = Post::with(['user', 'originalPost.user'])
@@ -71,22 +71,17 @@ class PostController extends Controller
         return view('posts.index', compact('posts'));
     }
 
-    // Xử lý đăng bài mới
-    // XỬ LÝ ĐĂNG BÀI MỚI (Đã sửa)
     public function store(Request $request)
     {
-        // 1. Validate: Chấp nhận mảng file 'media' (image hoặc video)
         $request->validate([
             'content' => 'nullable|string',
-            'media.*' => 'nullable|file|mimes:jpg,jpeg,png,gif,mp4,mov,ogg,qt|max:20480', // Max 20MB cho video
+            'media.*' => 'nullable|file|mimes:jpg,jpeg,png,gif,mp4,mov,ogg,qt|max:20480',
         ]);
 
-        // 2. Kiểm tra nếu không có cả nội dung lẫn file
         if (!$request->filled('content') && !$request->hasFile('media')) {
             return back()->withErrors(['content' => 'Bài viết không được để trống.']);
         }
 
-        // 3. Kiểm tra từ khóa cấm
         if ($this->containsBannedKeyword($request->input('content'))) {
             return back()->withErrors(['content' => 'Bài viết chứa từ khóa bị cấm.']);
         }
@@ -94,15 +89,11 @@ class PostController extends Controller
         $mediaUrl = null;
         $mediaType = null;
 
-        // 4. Xử lý upload file (Lấy file đầu tiên nếu có nhiều file)
         if ($request->hasFile('media')) {
-            $file = $request->file('media')[0]; // Lấy file đầu tiên trong mảng media[]
-            
-            // Lưu file vào public/posts
+            $file = $request->file('media')[0];
             $path = $file->store('posts', 'public');
-            $mediaUrl = $path; // Lưu đường dẫn tương đối để sau này dùng asset('storage/'.$path)
+            $mediaUrl = $path;
 
-            // Tự động xác định loại media dựa trên MIME Type
             $mime = $file->getMimeType();
             if (str_contains($mime, 'video')) {
                 $mediaType = 'video';
@@ -111,7 +102,6 @@ class PostController extends Controller
             }
         }
 
-        // 5. Lưu vào Database
         Post::create([
             'user_id' => Auth::id(),
             'content' => $request->input('content'),
@@ -121,7 +111,7 @@ class PostController extends Controller
 
         return redirect()->route('home')->with('success', 'Đăng bài thành công!');
     }
-    // Hiển thị Form sửa bài viết
+
     public function edit(Post $post)
     {
         if ($post->user_id !== Auth::id()) {
@@ -131,8 +121,6 @@ class PostController extends Controller
         return view('posts.edit', compact('post'));
     }
 
-    // Xử lý cập nhật bài viết
-  // XỬ LÝ CẬP NHẬT BÀI VIẾT (Gợi ý sửa thêm phần media nếu cần)
     public function update(Request $request, Post $post)
     {
         if ($post->user_id !== Auth::id()) {
@@ -150,9 +138,7 @@ class PostController extends Controller
 
         $data = ['content' => $request->input('content')];
 
-        // Nếu người dùng chọn file mới khi sửa bài
         if ($request->hasFile('media')) {
-            // Xóa file cũ trong storage nếu tồn tại để tránh rác server
             if ($post->media_url) {
                 Storage::disk('public')->delete($post->media_url);
             }
@@ -167,7 +153,7 @@ class PostController extends Controller
 
         return redirect()->route('home')->with('success', 'Cập nhật bài viết thành công!');
     }
-    // Xử lý xóa bài viết
+
     public function destroy(Post $post)
     {
         if ($post->user_id !== Auth::id()) {
@@ -179,7 +165,6 @@ class PostController extends Controller
         return back()->with('success', 'Xóa bài viết thành công!');
     }
 
-    // Xử lý chia sẻ
     public function share(Request $request, Post $post)
     {
         $request->validate(['content' => 'nullable|string']);

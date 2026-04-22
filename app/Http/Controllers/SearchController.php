@@ -2,64 +2,54 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Friendship;
 use App\Models\Post;
 use App\Models\User;
 use Illuminate\Http\Request;
+use Illuminate\View\View;
+use App\Models\Friendship;
 use Illuminate\Support\Facades\Auth;
-// QUAN TRỌNG: Thêm 2 dòng này để hết lỗi gạch đỏ và xử lý link ảnh
-use Illuminate\Support\Facades\Storage; 
-use Illuminate\Support\Str;
 
 class SearchController extends Controller
 {
-    public function index(Request $request)
+    public function index(Request $request): View
     {
-        $keyword = trim((string) $request->input('q', ''));
+        $authId = Auth::id();
 
-        // 1. Tìm kiếm người dùng
-        $users = User::query()
-            ->when($keyword !== '', function ($query) use ($keyword) {
-                $query->where('name', 'like', '%' . $keyword . '%');
+        // Bắt từ khóa từ form của giao diện Reaction (name="q")
+        $query = $request->input('q') ?? $request->input('query');
+
+        // Dữ liệu Sidebar (bảo toàn cấu trúc giao diện)
+        $friendIds = Friendship::where('status', 'accepted')
+            ->where(function ($q) use ($authId) {
+                $q->where('sender_id', $authId)->orWhere('receiver_id', $authId);
             })
-            ->where('id', '!=', Auth::id())
-            ->limit(20)
-            ->get();
+            ->get()
+            ->map(function ($f) use ($authId) {
+                return $f->sender_id === $authId ? $f->receiver_id : $f->sender_id;
+            });
+        $friends = User::whereIn('id', $friendIds)->get();
+        $pendingRequests = Friendship::with('sender')->where('receiver_id', $authId)->where('status', 'pending')->latest()->get();
 
-        // 2. Xử lý bản đồ bạn bè (Friendship Map)
-        $friendships = Friendship::query()
-            ->where(function ($query) {
-                $query->where('sender_id', Auth::id())->orWhere('receiver_id', Auth::id());
-            })
-            ->get();
+        // Xử lý tìm kiếm
+        if (!$query) {
+            return view('search.index', [
+                'users' => collect(),
+                'posts' => collect(),
+                'query' => '',
+                'friends' => $friends,
+                'pendingRequests' => $pendingRequests
+            ]);
+        }
 
-        $friendshipMap = $friendships->mapWithKeys(function ($friendship) {
-            $otherId = $friendship->sender_id === Auth::id() ? $friendship->receiver_id : $friendship->sender_id;
-            return [$otherId => $friendship];
-        });
+        // 1. Tìm người dùng
+        $users = User::where('name', 'like', "%{$query}%")->get();
 
-        // 3. Tìm kiếm bài đăng và XỬ LÝ ẢNH
-        $posts = Post::query()
-            ->with('user')
-            ->when($keyword !== '', function ($query) use ($keyword) {
-                $query->where('content', 'like', '%' . $keyword . '%');
-            })
+        // 2. Tìm bài viết
+        $posts = Post::with(['user', 'comments.user', 'reactions', 'originalPost.user'])
+            ->where('content', 'like', "%{$query}%")
             ->latest()
-            ->limit(20)
             ->get();
 
-        // Xử lý đường dẫn ảnh/video trước khi gửi ra View
-        $posts->transform(function ($post) {
-            if ($post->media_url) {
-                // Nếu link bắt đầu bằng http (Pinterest, Google...) thì giữ nguyên
-                // Nếu không thì nối thêm asset('storage/...')
-                $post->formatted_media_url = Str::startsWith($post->media_url, ['http://', 'https://']) 
-                    ? $post->media_url 
-                    : asset('storage/' . $post->media_url);
-            }
-            return $post;
-        });
-
-        return view('search.index', compact('keyword', 'users', 'posts', 'friendshipMap'));
+        return view('search.index', compact('users', 'posts', 'query', 'friends', 'pendingRequests'));
     }
 }
