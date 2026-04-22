@@ -90,3 +90,22 @@ window.onclick = function (event) {
         });
     }
 };
+
+document.addEventListener("DOMContentLoaded", function() {
+    if (window.Echo) {
+        window.Echo.join('online')
+            .here((users) => {
+                users.forEach(user => {
+                    document.querySelectorAll(`.user-status-${user.id}`).forEach(el => el.classList.add('online'));
+                });
+            })
+            .joining((user) => {
+                document.querySelectorAll(`.user-status-${user.id}`).forEach(el => el.classList.add('online'));
+            })
+            .leaving((user) => {
+                document.querySelectorAll(`.user-status-${user.id}`).forEach(el => el.classList.remove('online'));
+            });
+    } else {
+        console.warn("Laravel Echo chưa được khởi tạo. Hãy kiểm tra lại file bootstrap.js");
+    }
+});
