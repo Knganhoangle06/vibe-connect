@@ -189,7 +189,7 @@
                         <a href="{{ route('messages.create', $friend->id) }}"
                             style="flex-shrink: 0; text-decoration: none; cursor: pointer; display: flex; flex-direction: column; align-items: center; gap: 5px;">
                             <div style="position: relative;">
-                                <img src="{{ $friend->avatar ?? asset('images/default-avatar.png') }}"
+                                <img src="{{ $friend->avatar ? (filter_var($friend->avatar, FILTER_VALIDATE_URL) ? $friend->avatar : asset('storage/' . $friend->avatar)) : asset('images/default-avatar.png') }}"
                                     style="width: 48px; height: 48px; border-radius: 50%; object-fit: cover;">
                                 <div class="status-badge user-status-{{ $friend->id }}"></div>
                             </div>
@@ -212,7 +212,7 @@
                     <a href="{{ route('messages.index', $conv->id) }}"
                         class="msg-item {{ isset($activeConversation) && $activeConversation->id === $conv->id ? 'active' : '' }}">
                         <div style="position: relative;">
-                            <img src="{{ $otherUser->avatar ?? asset('images/default-avatar.png') }}"
+                            <img src="{{ $otherUser->avatar ? (filter_var($otherUser->avatar, FILTER_VALIDATE_URL) ? $otherUser->avatar : asset('storage/' . $otherUser->avatar)) : asset('images/default-avatar.png') }}"
                                 style="width: 50px; height: 50px; border-radius: 50%; object-fit: cover;">
                             <div class="status-badge user-status-{{ $otherUser->id }}"></div>
                         </div>
@@ -233,7 +233,7 @@
                 @php $activeUser = $activeConversation->users->where('id', '!=', Auth::id())->first(); @endphp
                 <div class="msg-header">
                     <div style="display: flex; align-items: center; gap: 10px;">
-                        <img src="{{ $activeUser->avatar ?? asset('images/default-avatar.png') }}"
+                        <img src="{{ $activeUser->avatar ? (filter_var($activeUser->avatar, FILTER_VALIDATE_URL) ? $activeUser->avatar : asset('storage/' . $activeUser->avatar)) : asset('images/default-avatar.png') }}"
                             style="width: 40px; height: 40px; border-radius: 50%; object-fit: cover;">
                         <span>{{ $activeUser->name }}</span>
                     </div>

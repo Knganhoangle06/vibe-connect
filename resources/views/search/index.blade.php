@@ -68,305 +68,12 @@
             <div class="card search-results-section">
                 <h3 class="section-title">Bài đăng</h3>
                 @forelse($posts as $post)
-                    @php
-                        $myReaction = $post->reactions->firstWhere('user_id', Auth::id());
-                    @endphp
                     <div class="card">
-                        <div class="post-header">
-                            <div class="user-info">
-                                <a href="{{ route('profile.show', $post->user->id) }}">
-                                    <img src="{{ $post->user->avatar ? (filter_var($post->user->avatar, FILTER_VALIDATE_URL) ? $post->user->avatar : asset('storage/' . $post->user->avatar)) : asset('images/default-avatar.png') }}"
-                                        class="user-pic">
-                                </a>
-                                <div>
-                                    <h4 style="font-size: 15px;"><a
-                                            href="{{ route('profile.show', $post->user->id) }}">{{ $post->user->name }}</a>
-                                    </h4>
-                                    <small>{{ $post->created_at->diffForHumans() }} ·
-                                        @if (($post->privacy ?? 'public') === 'public')
-                                            <i class="fa-solid fa-earth-americas" title="Công khai"></i>
-                                        @elseif(($post->privacy ?? 'public') === 'friends')
-                                            <i class="fa-solid fa-user-group" title="Bạn bè"></i>
-                                        @else
-                                            <i class="fa-solid fa-lock" title="Chỉ mình tôi"></i>
-                                        @endif
-                                    </small>
-                                </div>
-                            </div>
-
-                            @if (Auth::id() == $post->user_id)
-                                <div class="post-options">
-                                    <div class="menu-dots" onclick="toggleMenu(this)">
-                                        <i class="fa-solid fa-ellipsis"></i>
-                                    </div>
-                                    <div class="options-menu">
-                                        <a href="#"
-                                            onclick="openPrivacyModal({{ $post->id }}, '{{ $post->privacy ?? 'public' }}'); return false;">
-                                            <i class="fa-solid fa-lock"></i> Chỉnh sửa quyền riêng tư
-                                        </a>
-                                        <a href="{{ route('posts.edit', $post->id) }}"><i
-                                                class="fa-regular fa-pen-to-square"></i> Chỉnh sửa</a>
-                                        <form action="{{ route('posts.destroy', $post->id) }}" method="POST">
-                                            @csrf @method('DELETE')
-                                            <button type="submit" class="delete-btn"><i
-                                                    class="fa-regular fa-trash-can"></i> Xóa bài viết</button>
-                                        </form>
-                                    </div>
-                                </div>
-                            @endif
-                        </div>
-
-                        @if ($post->content)
-                            <p style="margin: 10px 0;">{{ $post->content }}</p>
-                        @endif
-
-                        @if ($post->media && $post->media->isNotEmpty())
-                            <div class="post-media-gallery" style="margin-top: 10px;">
-                                @foreach ($post->media as $media_item)
-                                    @if ($media_item->file_type === 'image')
-                                        <img src="{{ Storage::url($media_item->file_path) }}" class="post-img"
-                                            style="margin-bottom: 5px;">
-                                    @elseif ($media_item->file_type === 'video')
-                                        <video controls class="post-video" style="margin-bottom: 5px;">
-                                            <source src="{{ Storage::url($media_item->file_path) }}">
-                                        </video>
-                                    @endif
-                                @endforeach
-                            </div>
-                        @elseif ($post->media_url)
-                            <div class="post-media-gallery" style="margin-top: 10px;">
-                                @if ($post->media_type === 'image')
-                                    <img src="{{ filter_var($post->media_url, FILTER_VALIDATE_URL) ? $post->media_url : Storage::url($post->media_url) }}"
-                                        class="post-img" style="margin-bottom: 5px;">
-                                @elseif ($post->media_type === 'video')
-                                    <video controls class="post-video" style="margin-bottom: 5px;">
-                                        <source
-                                            src="{{ filter_var($post->media_url, FILTER_VALIDATE_URL) ? $post->media_url : Storage::url($post->media_url) }}">
-                                    </video>
-                                @endif
-                            </div>
-                        @endif
-
-                        @if ($post->original_post_id && $post->originalPost)
-                            @php $originalPost = $post->originalPost; @endphp
-                            <div class="original-post-box">
-                                <div class="post-header" style="margin-bottom: 8px;">
-                                    <a href="{{ route('profile.show', $originalPost->user->id) }}">
-                                        <img src="{{ $originalPost->user->avatar ? (filter_var($originalPost->user->avatar, FILTER_VALIDATE_URL) ? $originalPost->user->avatar : asset('storage/' . $originalPost->user->avatar)) : asset('images/default-avatar.png') }}"
-                                            class="user-pic" style="width: 30px; height: 30px;">
-                                    </a>
-                                    <div>
-                                        <h5 style="font-size: 13px; margin:0;"><a
-                                                href="{{ route('profile.show', $originalPost->user->id) }}">{{ $originalPost->user->name }}</a>
-                                        </h5>
-                                        <small
-                                            style="font-size: 12px; color: var(--text-gray);">{{ $originalPost->created_at->diffForHumans() }}</small>
-                                    </div>
-                                </div>
-                                @if ($originalPost->content)
-                                    <p style="font-size: 14px; margin: 0 0 10px 0;">{{ $originalPost->content }}</p>
-                                @endif
-
-                                @if ($originalPost->media->isNotEmpty())
-                                    <div class="post-media-gallery">
-                                        @foreach ($originalPost->media as $media_item)
-                                            @if ($media_item->file_type === 'image')
-                                                <img src="{{ Storage::url($media_item->file_path) }}" class="post-img"
-                                                    style="margin-bottom: 5px;">
-                                            @elseif ($media_item->file_type === 'video')
-                                                <video controls class="post-video" style="margin-bottom: 5px;">
-                                                    <source src="{{ Storage::url($media_item->file_path) }}">
-                                                </video>
-                                            @endif
-                                        @endforeach
-                                    </div>
-                                @elseif ($originalPost->media_url)
-                                    <div class="post-media-gallery">
-                                        @if ($originalPost->media_type === 'image')
-                                            <img src="{{ filter_var($originalPost->media_url, FILTER_VALIDATE_URL) ? $originalPost->media_url : Storage::url($originalPost->media_url) }}"
-                                                class="post-img" style="margin-bottom: 5px;">
-                                        @elseif ($originalPost->media_type === 'video')
-                                            <video controls class="post-video" style="margin-bottom: 5px;">
-                                                <source
-                                                    src="{{ filter_var($originalPost->media_url, FILTER_VALIDATE_URL) ? $originalPost->media_url : Storage::url($originalPost->media_url) }}">
-                                            </video>
-                                        @endif
-                                    </div>
-                                @endif
-                            </div>
-                        @endif
-
-                        @php
-                            $reactionGroups = $post->reactions->groupBy('type');
-                            $topLevelComments = $post->comments->whereNull('parent_id');
-                            $totalComments = $post->comments->count();
-                            $reactionEmojiMap = [
-                                'like' => '👍',
-                                'love' => '❤️',
-                                'haha' => '😆',
-                                'wow' => '😮',
-                                'sad' => '😢',
-                                'angry' => '😡',
-                            ];
-                        @endphp
-
-                        <div class="post-meta-bar">
-                            <div class="meta-left">
-                                <strong>{{ $post->reactions->count() }}</strong> cảm xúc
-                                @if ($reactionGroups->isNotEmpty())
-                                    <span class="reaction-summary-icons">
-                                        @foreach ($reactionGroups->keys()->take(3) as $reactionType)
-                                            <span
-                                                title="{{ ucfirst($reactionType) }}">{{ $reactionEmojiMap[$reactionType] ?? '👍' }}</span>
-                                        @endforeach
-                                    </span>
-                                @endif
-                            </div>
-                            <button type="button" class="meta-comment-trigger"
-                                onclick="toggleCommentPanel({{ $post->id }})"
-                                aria-expanded="{{ session('open_comments_post_id') == $post->id ? 'true' : 'false' }}"
-                                aria-controls="comment-panel-{{ $post->id }}">
-                                {{ $totalComments }} bình luận
-                            </button>
-                        </div>
-
-                        @if ($post->reactions->count())
-                            <details class="reaction-details">
-                                <summary>Xem ai đã thả cảm xúc</summary>
-                                @foreach ($reactionGroups as $reactionType => $reactionItems)
-                                    <div class="reaction-group">
-                                        <div class="reaction-group-title">
-                                            <span>{{ $reactionEmojiMap[$reactionType] ?? '👍' }}</span>
-                                            {{ ucfirst($reactionType) }} ({{ $reactionItems->count() }})
-                                        </div>
-                                        <div class="reaction-user-list">
-                                            @foreach ($reactionItems as $reactionItem)
-                                                <a href="{{ route('profile.show', $reactionItem->user->id) }}"
-                                                    class="reaction-user-chip">
-                                                    <img src="{{ $reactionItem->user->avatar ?? 'https://i.pravatar.cc/150?u=' . $reactionItem->user->id }}"
-                                                        class="user-pic-small">
-                                                    <span>{{ $reactionItem->user->name }}</span>
-                                                </a>
-                                            @endforeach
-                                        </div>
-                                    </div>
-                                @endforeach
-                            </details>
-                        @endif
-
-                        <div class="post-footer post-footer-actions">
-                            <div class="reaction-wrapper" style="position: relative; display: inline-block; ">
-                                <div class="reaction-box shadow-sm border" style="margin-bottom: -3px;">
-                                    @foreach (['like' => '👍', 'love' => '❤️', 'haha' => '😆', 'wow' => '😮', 'sad' => '😢', 'angry' => '😡'] as $type => $emoji)
-                                        <form action="{{ route('posts.reaction.toggle', $post->id) }}" method="POST"
-                                            class="d-inline">
-                                            @csrf
-                                            <input type="hidden" name="type" value="{{ $type }}">
-                                            <button type="submit" class="btn-emoji" title="{{ ucfirst($type) }}">
-                                                {{ $emoji }}
-                                            </button>
-                                        </form>
-                                    @endforeach
-                                </div>
-
-                                <form action="{{ route('posts.reaction.toggle', $post->id) }}" method="POST">
-                                    @csrf
-                                    <input type="hidden" name="type" value="like">
-                                    <button type="submit" class="btn-main-action {{ $myReaction ? 'is-active' : '' }}">
-                                        @if ($myReaction)
-                                            @php
-                                                $emojis = [
-                                                    'like' => '👍',
-                                                    'love' => '❤️',
-                                                    'haha' => '😆',
-                                                    'wow' => '😮',
-                                                    'sad' => '😢',
-                                                    'angry' => '😡',
-                                                ];
-                                                $reactionEmoji = $emojis[$myReaction->type] ?? '👍';
-                                            @endphp
-                                            <span>{{ $reactionEmoji }}</span> {{ ucfirst($myReaction->type) }}
-                                        @else
-                                            <i class="fa-regular fa-thumbs-up me-1"></i> Thích
-                                        @endif
-                                    </button>
-                                </form>
-                            </div>
-
-                            <button type="button" class="post-footer-comment-btn"
-                                onclick="toggleCommentPanel({{ $post->id }})"
-                                aria-expanded="{{ session('open_comments_post_id') == $post->id ? 'true' : 'false' }}"
-                                aria-controls="comment-panel-{{ $post->id }}">
-                                <i class="fa-regular fa-comment"></i> Bình luận
-                            </button>
-
-                            <form action="{{ route('posts.share', $post->id) }}" method="POST"
-                                class="post-footer-share">
-                                @csrf
-                                <input type="hidden" name="content" value="">
-                                <button type="submit" class="post-footer-share-btn">
-                                    <i class="fa-solid fa-share"></i> Chia sẻ
-                                </button>
-                            </form>
-                        </div>
-
-                        <div id="comment-panel-{{ $post->id }}"
-                            class="comment-panel {{ session('open_comments_post_id') == $post->id ? 'is-open' : '' }}"
-                            data-post-id="{{ $post->id }}">
-                            @foreach ($topLevelComments as $comment)
-                                <div class="comment-block">
-                                    <div class="comment-row">
-                                        <div>
-                                            <strong>{{ $comment->user->name }}</strong>: {{ $comment->content }}
-                                            <div class="comment-time">{{ $comment->created_at->diffForHumans() }}</div>
-                                        </div>
-                                        @if (Auth::id() === $comment->user_id || Auth::id() === $post->user_id)
-                                            <form action="{{ route('comments.destroy', $comment->id) }}" method="POST">
-                                                @csrf
-                                                @method('DELETE')
-                                                <button type="submit" class="comment-delete-btn">Xóa</button>
-                                            </form>
-                                        @endif
-                                    </div>
-
-                                    @foreach ($comment->replies as $reply)
-                                        <div class="reply-row">
-                                            <div>
-                                                <strong>{{ $reply->user->name }}</strong>: {{ $reply->content }}
-                                                <div class="comment-time">{{ $reply->created_at->diffForHumans() }}</div>
-                                            </div>
-                                            @if (Auth::id() === $reply->user_id || Auth::id() === $post->user_id)
-                                                <form action="{{ route('comments.destroy', $reply->id) }}"
-                                                    method="POST">
-                                                    @csrf
-                                                    @method('DELETE')
-                                                    <button type="submit" class="comment-delete-btn">Xóa</button>
-                                                </form>
-                                            @endif
-                                        </div>
-                                    @endforeach
-
-                                    <form action="{{ route('comments.store', $post->id) }}" method="POST"
-                                        class="reply-form">
-                                        @csrf
-                                        <input type="hidden" name="parent_id" value="{{ $comment->id }}">
-                                        <input type="text" name="content"
-                                            placeholder="Trả lời {{ $comment->user->name }}..." required>
-                                        <button type="submit" class="btn-post">Trả lời</button>
-                                    </form>
-                                </div>
-                            @endforeach
-
-                            <form action="{{ route('comments.store', $post->id) }}" method="POST"
-                                class="comment-main-form">
-                                @csrf
-                                <input type="text" id="comment-input-{{ $post->id }}" name="content"
-                                    placeholder="Viết bình luận..." autocomplete="off">
-                                <button type="submit" class="btn-post">Gửi</button>
-                            </form>
-                        </div>
+                        @include('partials.post_card', ['post' => $post])
                     </div>
-                @endforeach
+                @empty
+                    <p class="empty-msg">Không tìm thấy bài đăng phù hợp.</p>
+                @endforelse
             </div>
         </main>
     </div>
@@ -427,6 +134,14 @@
     </div>
 
     <script>
+        function toggleMenu(element) {
+            const menu = element.nextElementSibling;
+            document.querySelectorAll('.options-menu').forEach(m => {
+                if (m !== menu) m.classList.remove('active');
+            });
+            if (menu) menu.classList.toggle('active');
+        }
+
         function openPrivacyModal(postId, currentPrivacy) {
             const modal = document.getElementById('privacyModal');
             if (modal) {
@@ -444,5 +159,21 @@
             const modal = document.getElementById('privacyModal');
             if (modal) modal.style.display = 'none';
         }
+
+        // JS Modal Cảm Xúc
+        function openReactionsModal(postId) {
+            const modal = document.getElementById('reactionsModal-' + postId);
+            if (modal) modal.style.display = 'flex';
+        }
+
+        function closeReactionsModal(postId) {
+            const modal = document.getElementById('reactionsModal-' + postId);
+            if (modal) modal.style.display = 'none';
+        }
+        window.addEventListener('click', function(event) {
+                    if (event.target.classList.contains('fb-modal') && event.target.id.startsWith('reactionsModal-')) {
+                        event.target.style.display = 'none';
+                    }
+                }
     </script>
 @endsection

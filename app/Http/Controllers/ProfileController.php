@@ -57,8 +57,8 @@ class ProfileController extends Controller
         $request->validate([
             'name' => 'required|string|max:255',
             'bio' => 'nullable|string|max:500',
-            'avatar' => 'nullable|image|max:2048',
-            'background' => 'nullable|image|max:2048', // Thêm validate cho ảnh bìa
+            'avatar' => 'nullable|image|max:20480',
+            'background' => 'nullable|image|max:20480', // Thêm validate cho ảnh bìa
         ]);
 
         $data = [
@@ -68,12 +68,26 @@ class ProfileController extends Controller
 
         // Xử lý upload Avatar
         if ($request->hasFile('avatar')) {
-            $data['avatar'] = $request->file('avatar')->store('avatars', 'public');
+            if (!$request->file('avatar')->isValid()) {
+                return back()->withErrors(['avatar' => 'Ảnh đại diện tải lên bị lỗi (có thể do dung lượng quá lớn).']);
+            }
+
+            $file = $request->file('avatar');
+            $path = 'avatars/' . $file->hashName();
+            Storage::disk('public')->put($path, fopen($file->getPathname(), 'r'));
+            $data['avatar'] = $path;
         }
 
         // Xử lý upload Ảnh bìa (Cái này lúc nãy bạn thiếu nè)
         if ($request->hasFile('background')) {
-            $data['background'] = $request->file('background')->store('covers', 'public');
+            if (!$request->file('background')->isValid()) {
+                return back()->withErrors(['background' => 'Ảnh bìa tải lên bị lỗi (có thể do dung lượng quá lớn).']);
+            }
+
+            $file = $request->file('background');
+            $path = 'covers/' . $file->hashName();
+            Storage::disk('public')->put($path, fopen($file->getPathname(), 'r'));
+            $data['background'] = $path;
         }
 
         $user->update($data);
