@@ -117,4 +117,31 @@ class MessageController extends Controller
 
         return response()->json(['success' => true, 'message' => $message]);
     }
+
+    /**
+     * THU HỒI TIN NHẮN
+     */
+    public function destroyMessage(Message $message)
+    {
+        // Chỉ cho phép người gửi thu hồi tin nhắn của chính mình
+        if ($message->sender_id !== Auth::id()) {
+            abort(403, 'Unauthorized action.');
+        }
+
+        $message->delete();
+        return back();
+    }
+
+    /**
+     * XÓA CUỘC TRÒ CHUYỆN
+     */
+    public function destroyConversation(Conversation $conversation)
+    {
+        if (!$conversation->users()->where('users.id', Auth::id())->exists()) {
+            abort(403, 'Unauthorized action.');
+        }
+
+        $conversation->delete();
+        return redirect()->route('messages.index');
+    }
 }

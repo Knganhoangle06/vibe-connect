@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Events\PostCreated;
 use Illuminate\Support\Facades\Storage;
 use App\Models\Friendship;
 use App\Models\Post;
@@ -99,12 +100,16 @@ class PostController extends Controller
             }
         }
 
-        Post::create([
+        $post = Post::create([
             'user_id' => Auth::id(),
             'content' => $request->input('content'),
             'media_url' => $mediaUrl,
             'media_type' => $mediaType,
         ]);
+
+        // Tải các quan hệ cần thiết và phát sự kiện realtime
+        $post->load(['user', 'originalPost.user']);
+        broadcast(new PostCreated($post))->toOthers();
 
         return redirect()->route('home')->with('success', 'Đăng bài thành công!');
     }
@@ -168,11 +173,15 @@ class PostController extends Controller
 
         $originalPostId = $post->original_post_id ?? $post->id;
 
-        Post::create([
+        $newPost = Post::create([
             'user_id' => Auth::id(),
             'original_post_id' => $originalPostId,
             'content' => $request->input('content'),
         ]);
+
+        // Tải các quan hệ cần thiết và phát sự kiện realtime
+        $newPost->load(['user', 'originalPost.user']);
+        broadcast(new PostCreated($newPost))->toOthers();
 
         return redirect()->route('home')->with('success', 'Chia sẻ bài viết thành công!');
     }

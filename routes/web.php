@@ -46,6 +46,7 @@ Route::middleware('auth')->group(function () {
 
     // TIN NHẮN (MESSAGES)
     Route::prefix('messages')->name('messages.')->group(function () {
+        Route::get('/create/{user}', [\App\Http\Controllers\MessageController::class, 'createConversation'])->name('create');
         Route::get('/{conversationId?}', [\App\Http\Controllers\MessageController::class, 'index'])->name('index')->where('conversationId', '[0-9]+');
         Route::post('/{conversation}', [\App\Http\Controllers\MessageController::class, 'store'])->name('store');
         Route::delete('/{message}/unsend', [\App\Http\Controllers\MessageController::class, 'destroyMessage'])->name('unsend');

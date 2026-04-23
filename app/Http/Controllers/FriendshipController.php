@@ -44,6 +44,9 @@ class FriendshipController extends Controller
             'status' => 'pending',
         ]);
 
+        // Phát sự kiện qua WebSockets cho người nhận
+        broadcast(new \App\Events\FriendRequestSent(Auth::user(), $user->id))->toOthers();
+
         return back()->with('success', 'Đã gửi lời mời kết bạn.');
     }
 

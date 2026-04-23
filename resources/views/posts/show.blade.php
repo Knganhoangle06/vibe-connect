@@ -206,7 +206,7 @@
                                 @endforeach
 
                                 <form id="reply-form-{{ $comment->id }}"
-                                    action="{{ route('comments.store', $post->id) }}" method="POST"
+                                    action="{{ route('comments.store', $post->id) }}" method="POST" class="ajax-form"
                                     style="display: none; gap: 8px; margin-top: 10px; align-items: center;">
                                     @csrf
                                     <input type="hidden" name="parent_id" value="{{ $comment->id }}">
@@ -224,7 +224,7 @@
                         </div>
                     @endforeach
 
-                    <form action="{{ route('comments.store', $post->id) }}" method="POST"
+                    <form action="{{ route('comments.store', $post->id) }}" method="POST" class="ajax-form"
                         style="display: flex; gap: 10px; margin-top: 15px; align-items: center;">
                         @csrf
                         <img src="{{ Auth::user()->avatar ? (filter_var(Auth::user()->avatar, FILTER_VALIDATE_URL) ? Auth::user()->avatar : asset('storage/' . Auth::user()->avatar)) : asset('images/default-avatar.png') }}"

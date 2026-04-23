@@ -29,12 +29,16 @@ class CommentController extends Controller
             }
         }
 
-        Comment::create([
+        $comment = Comment::create([
             'post_id' => $post->id,
             'user_id' => Auth::id(),
             'content' => $request->input('content'),
             'parent_id' => $parentId,
         ]);
+
+        if ($request->wantsJson()) {
+            return response()->json(['success' => true, 'comment' => $comment]);
+        }
 
         return back()->with([
             'success' => $parentId ? 'Đã trả lời bình luận!' : 'Đã đăng bình luận!',

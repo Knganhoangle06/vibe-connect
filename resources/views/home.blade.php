@@ -15,20 +15,6 @@
             <div class="menu-item"><i class="fa-solid fa-user" style="color: #c059d7;"></i> <a
                     href="{{ route('profile.me') }}"><span>Trang cá nhân</span></a></div>
 
-            @if (isset($pendingRequests) && $pendingRequests->count())
-                <div class="card" style="margin-top:12px;">
-                    <h4>Lời mời kết bạn</h4>
-                    @foreach ($pendingRequests as $request)
-                        <div style="margin-top:8px;">
-                            <strong>{{ $request->sender->name }}</strong>
-                            <form action="{{ route('friends.accept', $request->sender_id) }}" method="POST">
-                                @csrf
-                                <button type="submit" class="btn-post" style="margin-top:6px;">Chấp nhận</button>
-                            </form>
-                        </div>
-                    @endforeach
-                </div>
-            @endif
         </aside>
 
         <main class="content-center">
@@ -119,9 +105,22 @@
                                     class="user-pic">
                             </a>
                             <div>
-                                <h4 style="font-size: 15px;"><a
-                                        href="{{ route('profile.show', $post->user->id) }}">{{ $post->user->name }}</a>
-                                </h4>
+                                <div style="display: flex; align-items: center; gap: 6px;">
+                                    <h4 style="font-size: 15px; margin: 0;">
+                                        <a href="{{ route('profile.show', $post->user->id) }}"
+                                            style="color: #050505;">{{ $post->user->name }}</a>
+                                    </h4>
+                                    @if (Auth::id() !== $post->user_id && !$friends->contains('id', $post->user_id))
+                                        <span style="color: var(--text-gray); font-size: 12px;">•</span>
+                                        <form action="{{ route('friends.request', $post->user_id) }}" method="POST"
+                                            class="ajax-form" style="margin: 0;">
+                                            @csrf
+                                            <button type="submit"
+                                                style="background: transparent; border: none; color: var(--main-blue); font-weight: 600; cursor: pointer; font-size: 14px; padding: 0;">Thêm
+                                                bạn bè</button>
+                                        </form>
+                                    @endif
+                                </div>
                                 <small>{{ $post->created_at->diffForHumans() }} · <i
                                         class="fa-solid fa-earth-americas"></i></small>
                             </div>
@@ -276,6 +275,55 @@
         </main>
 
         <aside class="sidebar-right">
+            <div id="friend-requests-wrapper">
+                @if (isset($pendingRequests) && $pendingRequests->count() > 0)
+                    <div class="card" style="margin-bottom: 15px; padding: 15px;">
+                        <div
+                            style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                            <h4 style="color: var(--text-gray); margin: 0; font-size: 16px;">Lời mời kết bạn</h4>
+                            <a href="{{ route('friend.show') }}"
+                                style="color: var(--main-blue); text-decoration: none; font-size: 14px; font-weight: 500;">Xem
+                                thêm</a>
+                        </div>
+
+                        @php $firstRequest = $pendingRequests->first(); @endphp
+                        <div style="display: flex; gap: 10px; align-items: flex-start;">
+                            <a href="{{ route('profile.show', $firstRequest->sender_id) }}">
+                                <img src="{{ $firstRequest->sender->avatar ? (filter_var($firstRequest->sender->avatar, FILTER_VALIDATE_URL) ? $firstRequest->sender->avatar : asset('storage/' . $firstRequest->sender->avatar)) : asset('images/default-avatar.png') }}"
+                                    class="user-pic"
+                                    style="width: 48px; height: 48px; border-radius: 50%; object-fit: cover;">
+                            </a>
+                            <div style="flex: 1; overflow: hidden;">
+                                <div style="display: flex; justify-content: space-between; align-items: center;">
+                                    <a href="{{ route('profile.show', $firstRequest->sender_id) }}"
+                                        style="font-weight: 600; color: #050505; text-decoration: none; font-size: 15px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 120px;">
+                                        {{ $firstRequest->sender->name }}
+                                    </a>
+                                    <span
+                                        style="font-size: 12px; color: var(--text-gray); white-space: nowrap;">{{ $firstRequest->created_at->diffForHumans(null, true) }}</span>
+                                </div>
+
+                                <div style="display: flex; gap: 8px; margin-top: 10px;">
+                                    <form action="{{ route('friends.accept', $firstRequest->sender_id) }}" method="POST"
+                                        style="flex: 1; margin: 0;">
+                                        @csrf
+                                        <button type="submit" class="btn-confirm"
+                                            style="padding: 6px 10px; width: 100%;">Xác nhận</button>
+                                    </form>
+                                    <form action="{{ route('friends.remove', $firstRequest->sender_id) }}" method="POST"
+                                        style="flex: 1; margin: 0;">
+                                        @csrf @method('DELETE')
+                                        <button type="submit" class="btn-delete"
+                                            style="padding: 6px 10px; width: 100%;">Xóa</button>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <hr style="border: 0; border-top: 1px solid var(--border-color); margin: 15px 0;">
+                @endif
+            </div>
+
             <h4 style="color: var(--text-gray); margin-bottom: 15px; padding-left: 5px;">Người liên hệ</h4>
             @forelse($friends as $friend)
                 <div class="contact-item"
@@ -344,5 +392,141 @@
             });
             if (menu) menu.classList.toggle('active');
         }
+
+        // Realtime cho Bài viết mới với WebSockets
+        document.addEventListener("DOMContentLoaded", function() {
+            if (window.Echo) {
+                window.Echo.channel('posts')
+                    .listen('PostCreated', (e) => {
+                        const post = e.post;
+                        const authId = {{ Auth::id() ?? 'null' }};
+
+                        // Bỏ qua nếu chính mình là người đăng (giữ nguyên quy trình cũ)
+                        if (post.user_id === authId) return;
+
+                        // Xử lý HTML cho media (ảnh/video)
+                        let mediaHtml = '';
+                        if (post.media_url) {
+                            const isExternal = post.media_url.startsWith('http');
+                            const mediaSrc = isExternal ? post.media_url : `/storage/${post.media_url}`;
+                            if (post.media_type === 'image') {
+                                mediaHtml = `<img src="${mediaSrc}" class="post-img">`;
+                            } else if (post.media_type === 'video') {
+                                mediaHtml =
+                                    `<video controls class="post-video"><source src="${mediaSrc}" type="video/mp4"></video>`;
+                            }
+                        }
+
+                        // Xử lý HTML nếu bài viết là một bài chia sẻ (Share)
+                        let originalPostHtml = '';
+                        const origPost = post.original_post || post.originalPost;
+                        if (post.original_post_id && origPost) {
+                            let origAvatar = origPost.user.avatar ? (origPost.user.avatar.startsWith('http') ?
+                                    origPost.user.avatar : `/storage/${origPost.user.avatar}`) :
+                                '{{ asset('images/default-avatar.png') }}';
+                            originalPostHtml = `
+                                <div class="original-post-box" style="border: 1px solid var(--border-color); border-radius: 10px; padding: 10px; margin-top: 10px; background: #fafbff;">
+                                    <div class="post-header" style="margin-bottom: 8px;">
+                                        <img src="${origAvatar}" class="user-pic" style="width: 30px; height: 30px;">
+                                        <h5 style="font-size: 13px;">${origPost.user.name}</h5>
+                                    </div>
+                                    <p style="font-size: 14px;">${origPost.content || ''}</p>
+                                </div>
+                            `;
+                        }
+
+                        const csrfToken = document.querySelector('input[name="_token"]')?.value || '';
+                        let avatar = post.user.avatar ? (post.user.avatar.startsWith('http') ? post.user
+                                .avatar : `/storage/${post.user.avatar}`) :
+                            '{{ asset('images/default-avatar.png') }}';
+
+                        // Render khung bài viết
+                        const postHtml = `
+                            <div class="card" style="animation: fadeIn 0.5s ease-in-out; border: 1px solid #1877f2; transition: all 0.3s;">
+                                <div class="post-header">
+                                    <div class="user-info">
+                                        <a href="/profile/${post.user.id}">
+                                            <img src="${avatar}" class="user-pic">
+                                        </a>
+                                        <div>
+                                            <h4 style="font-size: 15px;"><a href="/profile/${post.user.id}">${post.user.name}</a></h4>
+                                            <small>Vừa xong · <i class="fa-solid fa-earth-americas"></i></small>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                ${post.content ? `<p style="margin: 10px 0;">${post.content}</p>` : ''}
+                                ${mediaHtml}
+                                ${originalPostHtml}
+
+                                <div class="post-meta-bar" style="display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid var(--border-color);">
+                                    <div class="meta-left" style="cursor: pointer;"><strong style="margin-left: 5px;">0</strong> cảm xúc</div>
+                                    <a href="/posts/${post.id}" style="color: var(--text-gray); text-decoration: none; font-size: 14px;">0 bình luận</a>
+                                </div>
+
+                                <div class="post-footer-actions" style="display: flex; justify-content: space-between; padding: 10px 0;">
+                                    <div class="reaction-wrapper" style="position: relative; display: inline-block; flex: 1;"><a href="/posts/${post.id}" class="btn-main-action"><i class="fa-regular fa-thumbs-up"></i> Thích</a></div>
+                                    <a href="/posts/${post.id}" class="btn-main-action" style="flex: 1; text-align: center;"><i class="fa-regular fa-comment"></i> Bình luận</a>
+                                </div>
+                            </div>
+                        `;
+
+                        // Chèn bài viết mới nhất ngay bên dưới Modal (dành cho phần đầu của Feed)
+                        const postModal = document.getElementById('postModal');
+                        if (postModal) postModal.insertAdjacentHTML('afterend', postHtml);
+                    });
+
+                // Realtime lắng nghe Lời mời kết bạn
+                if (authId) {
+                    window.Echo.private('App.Models.User.' + authId)
+                        .listen('FriendRequestSent', (e) => {
+                            const sender = e.sender;
+                            const wrapper = document.getElementById('friend-requests-wrapper');
+                            if (!wrapper) return;
+
+                            const avatarUrl = sender.avatar ? (sender.avatar.startsWith('http') ? sender
+                                    .avatar : '/storage/' + sender.avatar) :
+                                '{{ asset('images/default-avatar.png') }}';
+                            const csrfToken = document.querySelector('input[name="_token"]')?.value || '';
+
+                            const html = `
+                            <div class="card" style="margin-bottom: 15px; padding: 15px; animation: fadeIn 0.5s ease-in-out; border: 1px solid #1877f2; box-shadow: 0 0 10px rgba(24,119,242,0.1);">
+                                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                                    <h4 style="color: var(--text-gray); margin: 0; font-size: 16px;">Lời mời kết bạn</h4>
+                                    <a href="/friend-requests" style="color: var(--main-blue); text-decoration: none; font-size: 14px; font-weight: 500;">Xem thêm</a>
+                                </div>
+                                <div style="display: flex; gap: 10px; align-items: flex-start;">
+                                    <a href="/profile/${sender.id}">
+                                        <img src="${avatarUrl}" class="user-pic" style="width: 48px; height: 48px; border-radius: 50%; object-fit: cover;">
+                                    </a>
+                                    <div style="flex: 1; overflow: hidden;">
+                                        <div style="display: flex; justify-content: space-between; align-items: center;">
+                                            <a href="/profile/${sender.id}" style="font-weight: 600; color: #050505; text-decoration: none; font-size: 15px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 120px;">
+                                                ${sender.name}
+                                            </a>
+                                            <span style="font-size: 12px; color: var(--main-blue); font-weight: 600; white-space: nowrap;">Vừa xong</span>
+                                        </div>
+                                        <div style="display: flex; gap: 8px; margin-top: 10px;">
+                                            <form action="/friends/${sender.id}/accept" method="POST" style="flex: 1; margin: 0;">
+                                                <input type="hidden" name="_token" value="${csrfToken}">
+                                                <button type="submit" class="btn-confirm" style="padding: 6px 10px; width: 100%;">Xác nhận</button>
+                                            </form>
+                                            <form action="/friends/${sender.id}" method="POST" style="flex: 1; margin: 0;">
+                                                <input type="hidden" name="_token" value="${csrfToken}">
+                                                <input type="hidden" name="_method" value="DELETE">
+                                                <button type="submit" class="btn-delete" style="padding: 6px 10px; width: 100%;">Xóa</button>
+                                            </form>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <hr style="border: 0; border-top: 1px solid var(--border-color); margin: 15px 0;">
+                        `;
+
+                            wrapper.innerHTML = html;
+                        });
+                }
+            }
+        });
     </script>
 @endsection
