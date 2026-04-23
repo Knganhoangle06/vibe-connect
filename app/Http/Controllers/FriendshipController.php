@@ -13,7 +13,9 @@ class FriendshipController extends Controller
         $authId = Auth::id();
 
         if ($user->id === $authId) {
-            return back()->with('error', 'Không thể kết bạn với chính bạn.');
+            return request()->wantsJson()
+                ? response()->json(['error' => 'Không thể kết bạn với chính bạn.'], 400)
+                : back()->with('error', 'Không thể kết bạn với chính bạn.');
         }
 
         $existing = Friendship::query()
@@ -27,15 +29,22 @@ class FriendshipController extends Controller
 
         if ($existing) {
             if ($existing->status === 'accepted') {
-                return back()->with('error', 'Hai bạn đã là bạn bè.');
+                return request()->wantsJson()
+                    ? response()->json(['error' => 'Hai bạn đã là bạn bè.'], 400)
+                    : back()->with('error', 'Hai bạn đã là bạn bè.');
             }
 
             if ($existing->sender_id === $authId) {
-                return back()->with('error', 'Bạn đã gửi lời mời trước đó.');
+                return request()->wantsJson()
+                    ? response()->json(['error' => 'Bạn đã gửi lời mời trước đó.'], 400)
+                    : back()->with('error', 'Bạn đã gửi lời mời trước đó.');
             }
 
             $existing->update(['status' => 'accepted']);
-            return back()->with('success', 'Đã chấp nhận lời mời kết bạn.');
+
+            return request()->wantsJson()
+                ? response()->json(['success' => true, 'message' => 'Đã chấp nhận lời mời kết bạn.'])
+                : back()->with('success', 'Đã chấp nhận lời mời kết bạn.');
         }
 
         Friendship::create([
@@ -47,7 +56,9 @@ class FriendshipController extends Controller
         // Phát sự kiện qua WebSockets cho người nhận
         broadcast(new \App\Events\FriendRequestSent(Auth::user(), $user->id))->toOthers();
 
-        return back()->with('success', 'Đã gửi lời mời kết bạn.');
+        return request()->wantsJson()
+            ? response()->json(['success' => true, 'message' => 'Đã gửi lời mời kết bạn.'])
+            : back()->with('success', 'Đã gửi lời mời kết bạn.');
     }
 
     public function accept(User $user)
@@ -60,7 +71,14 @@ class FriendshipController extends Controller
 
         $friendship->update(['status' => 'accepted']);
 
-        return back()->with('success', 'Đã chấp nhận lời mời kết bạn.');
+        // Phát sóng sự kiện kết bạn thành công cho cả 2 người
+        $sender = $user;
+        $acceptor = Auth::user();
+        broadcast(new \App\Events\FriendRequestAccepted($sender, $acceptor))->toOthers();
+
+        return request()->wantsJson()
+            ? response()->json(['success' => true, 'message' => 'Đã chấp nhận lời mời kết bạn.'])
+            : back()->with('success', 'Đã chấp nhận lời mời kết bạn.');
     }
 
     public function remove(User $user)

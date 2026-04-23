@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Support\Facades\Storage;
 
 class Post extends Model
 {
@@ -35,5 +36,19 @@ class Post extends Model
     public function reactions()
     {
         return $this->hasMany(Reaction::class);
+    }
+
+    public function media()
+    {
+        return $this->hasMany(PostMedia::class);
+    }
+
+    protected static function booted(): void
+    {
+        static::deleting(function ($post) {
+            foreach ($post->media as $media_item) {
+                Storage::disk('public')->delete($media_item->file_path);
+            }
+        });
     }
 }

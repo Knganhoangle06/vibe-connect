@@ -45,7 +45,7 @@ class SearchController extends Controller
         $users = User::where('name', 'like', "%{$query}%")->get();
 
         // 2. Tìm bài viết
-        $posts = Post::with(['user', 'comments.user', 'reactions', 'originalPost.user'])
+        $posts = Post::with(['user', 'comments.user', 'reactions', 'originalPost.user', 'media', 'originalPost.media'])
             ->where('content', 'like', "%{$query}%")
             ->latest()
             ->get();

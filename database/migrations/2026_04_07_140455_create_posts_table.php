@@ -24,6 +24,7 @@ return new class extends Migration
             $table->text('content')->nullable();
             $table->string('media_url')->nullable();
             $table->enum('media_type', ['image', 'video'])->nullable();
+            $table->enum('privacy', ['public', 'friends', 'private'])->default('public');
 
             $table->timestamps();
 

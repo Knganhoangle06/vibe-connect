@@ -26,15 +26,15 @@
         @endif
 
         <form action="{{ route('posts.store') }}" method="POST" enctype="multipart/form-data">
-    @csrf
-    <textarea class="form-control" name="content" rows="3" placeholder="Bạn đang nghĩ gì?"></textarea>
-    
-    <label style="font-size: 13px; color: #65676b; cursor: pointer;">
-        📷 Thêm ảnh: <input type="file" name="image" accept="image/*">
-    </label>
-    
-    <button type="submit" class="btn btn-primary" style="margin-top: 10px;">Đăng bài</button>
-</form>
+            @csrf
+            <textarea class="form-control" name="content" rows="3" placeholder="Bạn đang nghĩ gì?"></textarea>
+
+            <label style="font-size: 13px; color: #65676b; cursor: pointer;">
+                📷 Thêm ảnh/video: <input type="file" name="media[]" accept="image/*,video/*" multiple>
+            </label>
+
+            <button type="submit" class="btn btn-primary" style="margin-top: 10px;">Đăng bài</button>
+        </form>
 
         @foreach ($posts as $post)
             <div class="post-card">
@@ -45,12 +45,22 @@
 
                 <p style="margin: 0 0 10px 0;">{{ $post->content }}</p>
 
-               @if ($post->media_url)
-    <img src="{{ Str::startsWith($post->media_url, 'http') ? $post->media_url : asset('storage/' . $post->media_url) }}" 
-         alt="Media" 
-         class="post-media"
-         onerror="this.style.display='none'"> 
-@endif
+                {{-- Hiển thị media mới (mảng ảnh/video) --}}
+                @if ($post->media && $post->media->isNotEmpty())
+                    @foreach ($post->media as $mediaItem)
+                        @if ($mediaItem->file_type === 'image')
+                            <img src="{{ Str::startsWith($mediaItem->file_path, 'http') ? $mediaItem->file_path : asset('storage/' . $mediaItem->file_path) }}"
+                                alt="Media" class="post-media">
+                        @elseif($mediaItem->file_type === 'video')
+                            <video controls class="post-media"
+                                src="{{ Str::startsWith($mediaItem->file_path, 'http') ? $mediaItem->file_path : asset('storage/' . $mediaItem->file_path) }}"></video>
+                        @endif
+                    @endforeach
+                @elseif ($post->media_url)
+                    {{-- Fallback cho dữ liệu Seeder cũ --}}
+                    <img src="{{ Str::startsWith($post->media_url, 'http') ? $post->media_url : asset('storage/' . $post->media_url) }}"
+                        alt="Media" class="post-media" onerror="this.style.display='none'">
+                @endif
 
                 @if ($post->original_post_id && $post->originalPost)
                     <div class="shared-post">

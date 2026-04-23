@@ -1,6 +1,7 @@
 <?php
 
 namespace App\Http\Controllers;
+
 use Illuminate\Support\Facades\Storage;
 use App\Models\Friendship;
 use App\Models\Post;
@@ -48,42 +49,42 @@ class ProfileController extends Controller
         ]);
     }
 
-   public function update(Request $request)
-{
-    /** @var User $user */
-    $user = Auth::user();
+    public function update(Request $request)
+    {
+        /** @var User $user */
+        $user = Auth::user();
 
-    $request->validate([
-        'name' => 'required|string|max:255',
-        'bio' => 'nullable|string|max:500',
-        'avatar' => 'nullable|image|max:2048', 
-        'background' => 'nullable|image|max:2048', // Thêm validate cho ảnh bìa
-    ]);
+        $request->validate([
+            'name' => 'required|string|max:255',
+            'bio' => 'nullable|string|max:500',
+            'avatar' => 'nullable|image|max:2048',
+            'background' => 'nullable|image|max:2048', // Thêm validate cho ảnh bìa
+        ]);
 
-    $data = [
-        'name' => $request->name,
-        'bio' => $request->bio,
-    ];
+        $data = [
+            'name' => $request->name,
+            'bio' => $request->bio,
+        ];
 
-    // Xử lý upload Avatar
-    if ($request->hasFile('avatar')) {
-        $data['avatar'] = $request->file('avatar')->store('avatars', 'public');
+        // Xử lý upload Avatar
+        if ($request->hasFile('avatar')) {
+            $data['avatar'] = $request->file('avatar')->store('avatars', 'public');
+        }
+
+        // Xử lý upload Ảnh bìa (Cái này lúc nãy bạn thiếu nè)
+        if ($request->hasFile('background')) {
+            $data['background'] = $request->file('background')->store('covers', 'public');
+        }
+
+        $user->update($data);
+
+        return back()->with('success', 'Đã cập nhật thông tin cá nhân.');
     }
-
-    // Xử lý upload Ảnh bìa (Cái này lúc nãy bạn thiếu nè)
-    if ($request->hasFile('background')) {
-        $data['background'] = $request->file('background')->store('covers', 'public');
-    }
-
-    $user->update($data);
-
-    return back()->with('success', 'Đã cập nhật thông tin cá nhân.');
-}
 
     private function postsOfUser(int $userId)
     {
         return Post::query()
-            ->with(['user', 'originalPost.user', 'comments.user', 'reactions'])
+            ->with(['user', 'originalPost.user', 'comments.user', 'reactions', 'media', 'originalPost.media'])
             ->where('user_id', $userId)
             ->latest()
             ->get();
@@ -101,7 +102,9 @@ class ProfileController extends Controller
         return [
             'posts' => $posts->count(),
             'friends' => $friendCount,
-            'photos' => $posts->where('media_type', 'image')->count(),
+            'photos' => $posts->reduce(function ($carry, $post) {
+                return $carry + $post->media->where('file_type', 'image')->count();
+            }, 0),
         ];
     }
 }

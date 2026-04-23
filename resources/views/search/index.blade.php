@@ -82,8 +82,15 @@
                                     <h4 style="font-size: 15px;"><a
                                             href="{{ route('profile.show', $post->user->id) }}">{{ $post->user->name }}</a>
                                     </h4>
-                                    <small>{{ $post->created_at->diffForHumans() }} · <i
-                                            class="fa-solid fa-earth-americas"></i></small>
+                                    <small>{{ $post->created_at->diffForHumans() }} ·
+                                        @if (($post->privacy ?? 'public') === 'public')
+                                            <i class="fa-solid fa-earth-americas" title="Công khai"></i>
+                                        @elseif(($post->privacy ?? 'public') === 'friends')
+                                            <i class="fa-solid fa-user-group" title="Bạn bè"></i>
+                                        @else
+                                            <i class="fa-solid fa-lock" title="Chỉ mình tôi"></i>
+                                        @endif
+                                    </small>
                                 </div>
                             </div>
 
@@ -93,6 +100,10 @@
                                         <i class="fa-solid fa-ellipsis"></i>
                                     </div>
                                     <div class="options-menu">
+                                        <a href="#"
+                                            onclick="openPrivacyModal({{ $post->id }}, '{{ $post->privacy ?? 'public' }}'); return false;">
+                                            <i class="fa-solid fa-lock"></i> Chỉnh sửa quyền riêng tư
+                                        </a>
                                         <a href="{{ route('posts.edit', $post->id) }}"><i
                                                 class="fa-regular fa-pen-to-square"></i> Chỉnh sửa</a>
                                         <form action="{{ route('posts.destroy', $post->id) }}" method="POST">
@@ -109,31 +120,79 @@
                             <p style="margin: 10px 0;">{{ $post->content }}</p>
                         @endif
 
-                        @if ($post->media_url)
-                            @php
-                                // Logic kiểm tra: Nếu bắt đầu bằng http thì là link ngoài, ngược lại là file trong máy
-                                $isExternal = strpos($post->media_url, 'http') === 0;
-                                $mediaSrc = $isExternal ? $post->media_url : asset('storage/' . $post->media_url);
-                            @endphp
-
-                            @if ($post->media_type === 'image')
-                                <img src="{{ $mediaSrc }}" class="post-img" alt="Post Image">
-                            @elseif($post->media_type === 'video')
-                                <video controls class="post-video">
-                                    <source src="{{ $mediaSrc }}" type="video/mp4">
-                                    Trình duyệt của bạn không hỗ trợ xem video.
-                                </video>
-                            @endif
+                        @if ($post->media && $post->media->isNotEmpty())
+                            <div class="post-media-gallery" style="margin-top: 10px;">
+                                @foreach ($post->media as $media_item)
+                                    @if ($media_item->file_type === 'image')
+                                        <img src="{{ Storage::url($media_item->file_path) }}" class="post-img"
+                                            style="margin-bottom: 5px;">
+                                    @elseif ($media_item->file_type === 'video')
+                                        <video controls class="post-video" style="margin-bottom: 5px;">
+                                            <source src="{{ Storage::url($media_item->file_path) }}">
+                                        </video>
+                                    @endif
+                                @endforeach
+                            </div>
+                        @elseif ($post->media_url)
+                            <div class="post-media-gallery" style="margin-top: 10px;">
+                                @if ($post->media_type === 'image')
+                                    <img src="{{ filter_var($post->media_url, FILTER_VALIDATE_URL) ? $post->media_url : Storage::url($post->media_url) }}"
+                                        class="post-img" style="margin-bottom: 5px;">
+                                @elseif ($post->media_type === 'video')
+                                    <video controls class="post-video" style="margin-bottom: 5px;">
+                                        <source
+                                            src="{{ filter_var($post->media_url, FILTER_VALIDATE_URL) ? $post->media_url : Storage::url($post->media_url) }}">
+                                    </video>
+                                @endif
+                            </div>
                         @endif
 
                         @if ($post->original_post_id && $post->originalPost)
+                            @php $originalPost = $post->originalPost; @endphp
                             <div class="original-post-box">
                                 <div class="post-header" style="margin-bottom: 8px;">
-                                    <img src="{{ $post->originalPost->user->avatar }}" class="user-pic"
-                                        style="width: 30px; height: 30px;">
-                                    <h5 style="font-size: 13px;">{{ $post->originalPost->user->name }}</h5>
+                                    <a href="{{ route('profile.show', $originalPost->user->id) }}">
+                                        <img src="{{ $originalPost->user->avatar ? (filter_var($originalPost->user->avatar, FILTER_VALIDATE_URL) ? $originalPost->user->avatar : asset('storage/' . $originalPost->user->avatar)) : asset('images/default-avatar.png') }}"
+                                            class="user-pic" style="width: 30px; height: 30px;">
+                                    </a>
+                                    <div>
+                                        <h5 style="font-size: 13px; margin:0;"><a
+                                                href="{{ route('profile.show', $originalPost->user->id) }}">{{ $originalPost->user->name }}</a>
+                                        </h5>
+                                        <small
+                                            style="font-size: 12px; color: var(--text-gray);">{{ $originalPost->created_at->diffForHumans() }}</small>
+                                    </div>
                                 </div>
-                                <p style="font-size: 14px;">{{ $post->originalPost->content }}</p>
+                                @if ($originalPost->content)
+                                    <p style="font-size: 14px; margin: 0 0 10px 0;">{{ $originalPost->content }}</p>
+                                @endif
+
+                                @if ($originalPost->media->isNotEmpty())
+                                    <div class="post-media-gallery">
+                                        @foreach ($originalPost->media as $media_item)
+                                            @if ($media_item->file_type === 'image')
+                                                <img src="{{ Storage::url($media_item->file_path) }}" class="post-img"
+                                                    style="margin-bottom: 5px;">
+                                            @elseif ($media_item->file_type === 'video')
+                                                <video controls class="post-video" style="margin-bottom: 5px;">
+                                                    <source src="{{ Storage::url($media_item->file_path) }}">
+                                                </video>
+                                            @endif
+                                        @endforeach
+                                    </div>
+                                @elseif ($originalPost->media_url)
+                                    <div class="post-media-gallery">
+                                        @if ($originalPost->media_type === 'image')
+                                            <img src="{{ filter_var($originalPost->media_url, FILTER_VALIDATE_URL) ? $originalPost->media_url : Storage::url($originalPost->media_url) }}"
+                                                class="post-img" style="margin-bottom: 5px;">
+                                        @elseif ($originalPost->media_type === 'video')
+                                            <video controls class="post-video" style="margin-bottom: 5px;">
+                                                <source
+                                                    src="{{ filter_var($originalPost->media_url, FILTER_VALIDATE_URL) ? $originalPost->media_url : Storage::url($originalPost->media_url) }}">
+                                            </video>
+                                        @endif
+                                    </div>
+                                @endif
                             </div>
                         @endif
 
@@ -311,4 +370,79 @@
             </div>
         </main>
     </div>
+
+    <!-- Modal Quyền Riêng Tư -->
+    <div id="privacyModal" class="fb-modal"
+        style="display: none; align-items: center; justify-content: center; z-index: 1060;">
+        <div class="modal-content"
+            style="max-width: 400px; width: 100%; border-radius: 10px; overflow: hidden; box-shadow: 0 4px 15px rgba(0,0,0,0.2);">
+            <div class="modal-header"
+                style="display: flex; justify-content: space-between; align-items: center; padding: 15px; border-bottom: 1px solid #ddd; background: #fff;">
+                <h3 style="margin: 0; font-size: 18px; font-weight: 600;">Chọn đối tượng</h3>
+                <span class="close-modal" onclick="closePrivacyModal()"
+                    style="cursor: pointer; font-size: 24px; color: #666; line-height: 1;">&times;</span>
+            </div>
+            <form id="privacyForm" method="POST" action="">
+                @csrf @method('PATCH')
+                <div class="modal-body" style="padding: 15px; background: #fff;">
+                    <div style="margin-bottom: 15px;">Ai có thể xem bài viết của bạn?</div>
+
+                    <label
+                        style="display: flex; align-items: center; padding: 10px 0; cursor: pointer; border-bottom: 1px solid #eee;">
+                        <input type="radio" name="privacy" value="public"
+                            style="margin-right: 10px; transform: scale(1.2);">
+                        <div>
+                            <div style="font-weight: 600;"><i class="fa-solid fa-earth-americas"></i> Công khai</div>
+                            <div style="font-size: 12px; color: #65676b;">Bất kỳ ai trên hoặc ngoài Vibe Connect</div>
+                        </div>
+                    </label>
+
+                    <label
+                        style="display: flex; align-items: center; padding: 10px 0; cursor: pointer; border-bottom: 1px solid #eee;">
+                        <input type="radio" name="privacy" value="friends"
+                            style="margin-right: 10px; transform: scale(1.2);">
+                        <div>
+                            <div style="font-weight: 600;"><i class="fa-solid fa-user-group"></i> Bạn bè</div>
+                            <div style="font-size: 12px; color: #65676b;">Bạn bè của bạn trên Vibe Connect</div>
+                        </div>
+                    </label>
+
+                    <label style="display: flex; align-items: center; padding: 10px 0; cursor: pointer;">
+                        <input type="radio" name="privacy" value="private"
+                            style="margin-right: 10px; transform: scale(1.2);">
+                        <div>
+                            <div style="font-weight: 600;"><i class="fa-solid fa-lock"></i> Chỉ mình tôi</div>
+                            <div style="font-size: 12px; color: #65676b;">Chỉ bạn mới có thể xem bài viết này</div>
+                        </div>
+                    </label>
+                </div>
+                <div class="modal-footer" style="padding: 15px; text-align: right; border-top: 1px solid #ddd;">
+                    <button type="button" class="btn-cancel" onclick="closePrivacyModal()"
+                        style="margin-right: 10px; padding: 8px 15px; border-radius: 5px; border: none; cursor: pointer; background-color: #e4e6eb;">Hủy</button>
+                    <button type="submit" class="btn-primary"
+                        style="padding: 8px 15px; border-radius: 5px; border: none; cursor: pointer; width: auto; background-color: #1877f2; color: #fff;">Xong</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        function openPrivacyModal(postId, currentPrivacy) {
+            const modal = document.getElementById('privacyModal');
+            if (modal) {
+                const form = document.getElementById('privacyForm');
+                form.action = `/posts/${postId}/privacy`;
+                const radios = form.querySelectorAll('input[name="privacy"]');
+                radios.forEach(radio => {
+                    radio.checked = (radio.value === currentPrivacy);
+                });
+                modal.style.display = 'flex';
+            }
+        }
+
+        function closePrivacyModal() {
+            const modal = document.getElementById('privacyModal');
+            if (modal) modal.style.display = 'none';
+        }
+    </script>
 @endsection

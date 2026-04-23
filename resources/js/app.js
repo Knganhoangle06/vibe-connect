@@ -13,7 +13,7 @@ import "./bootstrap";
 window.openPostModal = function () {
     let modal = document.getElementById("postModal");
     if (modal) {
-        modal.style.display = "block";
+        modal.style.display = "flex";
         document.body.style.overflow = "hidden";
     }
 };
@@ -71,7 +71,24 @@ window.previewFiles = function (input) {
     const previewContainer = document.getElementById("preview-container");
     previewContainer.innerHTML = "";
 
-    if (input.files) {
+    // Khôi phục thuộc tính để dọn dẹp format của lần chọn cũ
+    previewContainer.removeAttribute("style");
+
+    if (input.files && input.files.length > 0) {
+        const isSingle = input.files.length === 1;
+
+        if (isSingle) {
+            previewContainer.style.display = "block";
+        } else {
+            previewContainer.style.display = "grid";
+            previewContainer.style.gridTemplateColumns =
+                "repeat(auto-fit, minmax(180px, 1fr))";
+            previewContainer.style.gap = "10px";
+            previewContainer.style.maxHeight = "350px";
+            previewContainer.style.overflowY = "auto";
+            previewContainer.style.marginTop = "10px";
+        }
+
         Array.from(input.files).forEach((file) => {
             const reader = new FileReader();
             reader.onload = function (e) {
@@ -83,7 +100,18 @@ window.previewFiles = function (input) {
                 element.src = e.target.result;
                 element.style.width = "100%";
                 element.style.borderRadius = "8px";
-                element.style.marginTop = "10px";
+                element.style.boxShadow = "0 1px 3px rgba(0,0,0,0.1)";
+                element.style.backgroundColor = "#000";
+
+                if (isSingle) {
+                    element.style.maxHeight = "350px";
+                    element.style.objectFit = "contain";
+                    element.style.marginTop = "10px";
+                } else {
+                    element.style.height = "180px";
+                    element.style.objectFit = "cover";
+                }
+
                 if (isVideo) element.controls = true;
 
                 previewContainer.appendChild(element);

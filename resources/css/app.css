@@ -487,12 +487,15 @@ nav {
     width: 100%;
     height: 100%;
     background: rgba(255, 255, 255, 0.8);
+    align-items: center;
+    justify-content: center;
 }
 
 .modal-content {
     background: #fff;
-    margin: 5% auto;
-    width: 500px;
+    margin: auto;
+    width: 90%;
+    max-width: 650px;
     border-radius: 8px;
     box-shadow: 0 12px 28px rgba(0, 0, 0, 0.2);
 }
@@ -518,7 +521,7 @@ nav {
 
 .modal-body {
     padding: 15px;
-    max-height: 400px;
+    max-height: 60vh;
     overflow-y: auto;
 }
 
@@ -535,7 +538,7 @@ nav {
     font-size: 18px;
     resize: none;
     outline: none;
-    min-height: 80px;
+    min-height: 140px;
 }
 
 /* Khu vực upload */
@@ -1121,12 +1124,15 @@ body {
     width: 100%;
     height: 100%;
     background: rgba(255, 255, 255, 0.8);
+    align-items: center;
+    justify-content: center;
 }
 
 .modal-content {
     background: #fff;
-    margin: 5% auto;
-    width: 500px;
+    margin: auto;
+    width: 90%;
+    max-width: 650px;
     border-radius: 8px;
     box-shadow: 0 12px 28px rgba(0, 0, 0, 0.2);
     overflow: hidden;
@@ -1911,7 +1917,7 @@ body {
     background-color: #fff;
     margin: auto;
     width: 90%;
-    max-width: 500px;
+    max-width: 650px;
     border-radius: 8px;
     box-shadow: 0 12px 28px rgba(0, 0, 0, 0.2);
     overflow: hidden;
