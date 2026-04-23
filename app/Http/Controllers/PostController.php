@@ -1,6 +1,7 @@
 <?php
 
 namespace App\Http\Controllers;
+
 use Illuminate\Support\Facades\Storage;
 use App\Models\Friendship;
 use App\Models\Post;
@@ -36,9 +37,6 @@ class PostController extends Controller
             ->latest()
             ->get();
 
-        $visibleAuthorIds = $friendIds->toBase()->all();
-        $visibleAuthorIds[] = $authId;
-
         $posts = Post::query()
             ->with([
                 'user',
@@ -53,7 +51,6 @@ class PostController extends Controller
                 'reactions',
                 'reactions.user',
             ])
-            ->whereIn('user_id', array_unique($visibleAuthorIds))
             ->latest()
             ->paginate(10);
 
@@ -114,7 +111,7 @@ class PostController extends Controller
 
     public function edit(Post $post)
     {
-        if ($post->user_id !== Auth::id()) {
+        if ($post->user_id !== Auth::id() && Auth::user()?->role !== 'admin') {
             abort(403, 'Bạn không có quyền sửa bài viết này.');
         }
 
@@ -123,7 +120,7 @@ class PostController extends Controller
 
     public function update(Request $request, Post $post)
     {
-        if ($post->user_id !== Auth::id()) {
+        if ($post->user_id !== Auth::id() && Auth::user()?->role !== 'admin') {
             abort(403);
         }
 
@@ -156,7 +153,7 @@ class PostController extends Controller
 
     public function destroy(Post $post)
     {
-        if ($post->user_id !== Auth::id()) {
+        if ($post->user_id !== Auth::id() && Auth::user()?->role !== 'admin') {
             abort(403);
         }
 
@@ -174,7 +171,7 @@ class PostController extends Controller
         Post::create([
             'user_id' => Auth::id(),
             'original_post_id' => $originalPostId,
-           'content' => $request->input('content'),
+            'content' => $request->input('content'),
         ]);
 
         return redirect()->route('home')->with('success', 'Chia sẻ bài viết thành công!');
@@ -225,5 +222,22 @@ class PostController extends Controller
         }
 
         return false;
+    }
+
+    public function show($id)
+    {
+        $post = Post::with([
+            'user',
+            'originalPost.user',
+            'comments' => function ($query) {
+                $query->latest();
+            },
+            'comments.user',
+            'comments.replies.user',
+            'reactions',
+            'reactions.user',
+        ])->findOrFail($id);
+
+        return view('posts.show', compact('post'));
     }
 }

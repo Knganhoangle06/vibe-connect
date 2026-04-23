@@ -33,13 +33,13 @@
 
         <main class="content-center">
             @if (session('success'))
-                <div class="card1" style="color:green;">{{ session('success') }}</div>
+                <div class="alert-success">{{ session('success') }}</div>
             @endif
             @if (session('error'))
-                <div class="card1" style="color:#b3261e;">{{ session('error') }}</div>
+                <div class="alert-danger">{{ session('error') }}</div>
             @endif
 
-            <div class="card1 create-post-trigger">
+            <div class="card create-post-trigger">
                 <div class="post-input-container">
                     <img src="{{ Auth::user()->avatar ? (filter_var(Auth::user()->avatar, FILTER_VALIDATE_URL) ? Auth::user()->avatar : asset('storage/' . Auth::user()->avatar)) : asset('images/default-avatar.png') }}"
                         class="user-pic">
@@ -79,9 +79,7 @@
                                     <div class="privacy-badge"><i class="fa-solid fa-users"></i> Bạn bè</div>
                                 </div>
                             </div>
-
                             <textarea name="content" placeholder="Bạn đang nghĩ gì thế?" required></textarea>
-
                             <div class="upload-area">
                                 <label for="file-upload" class="file-label">
                                     <div class="upload-icon"><i class="fa-solid fa-square-plus"></i></div>
@@ -90,11 +88,9 @@
                                 </label>
                                 <input type="file" id="file-upload" name="media[]" accept="image/*,video/*" multiple
                                     hidden onchange="previewFiles(this)">
-
                                 <div id="preview-container"></div>
                             </div>
                         </div>
-
                         <div class="modal-footer">
                             <button type="submit" class="btn-submit-post">Đăng</button>
                         </div>
@@ -105,8 +101,17 @@
             @foreach ($posts as $post)
                 @php
                     $myReaction = $post->reactions->firstWhere('user_id', Auth::id());
+                    $reactionGroups = $post->reactions->groupBy('type');
+                    $reactionEmojiMap = [
+                        'like' => '👍',
+                        'love' => '❤️',
+                        'haha' => '😆',
+                        'wow' => '😮',
+                        'sad' => '😢',
+                        'angry' => '😡',
+                    ];
                 @endphp
-                <div class="card1">
+                <div class="card">
                     <div class="post-header">
                         <div class="user-info">
                             <a href="{{ route('profile.show', $post->user->id) }}">
@@ -117,11 +122,12 @@
                                 <h4 style="font-size: 15px;"><a
                                         href="{{ route('profile.show', $post->user->id) }}">{{ $post->user->name }}</a>
                                 </h4>
-                                <small>{{ $post->created_at->diffForHumans() }}</small>
+                                <small>{{ $post->created_at->diffForHumans() }} · <i
+                                        class="fa-solid fa-earth-americas"></i></small>
                             </div>
                         </div>
 
-                        @if (Auth::id() == $post->user_id)
+                        @if (Auth::id() == $post->user_id || Auth::user()?->role === 'admin')
                             <div class="post-options">
                                 <div class="menu-dots" onclick="toggleMenu(this)">
                                     <i class="fa-solid fa-ellipsis"></i>
@@ -157,23 +163,10 @@
                         @endif
                     @endif
 
-                    @php
-                        $reactionGroups = $post->reactions->groupBy('type');
-                        $topLevelComments = $post->comments->whereNull('parent_id');
-                        $totalComments = $post->comments->count();
-                        $reactionEmojiMap = [
-                            'like' => '👍',
-                            'love' => '❤️',
-                            'haha' => '😆',
-                            'wow' => '😮',
-                            'sad' => '😢',
-                            'angry' => '😡',
-                        ];
-                    @endphp
-
-                    <div class="post-meta-bar">
-                        <div class="meta-left">
-                            <strong>{{ $post->reactions->count() }}</strong> cảm xúc
+                    <div class="post-meta-bar"
+                        style="display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid var(--border-color);">
+                        <div class="meta-left" onclick="openReactionsModal({{ $post->id }})"
+                            style="cursor: pointer;">
                             @if ($reactionGroups->isNotEmpty())
                                 <span class="reaction-summary-icons">
                                     @foreach ($reactionGroups->keys()->take(3) as $reactionType)
@@ -182,18 +175,19 @@
                                     @endforeach
                                 </span>
                             @endif
+                            <strong style="margin-left: 5px;">{{ $post->reactions->count() }}</strong> cảm xúc
                         </div>
-                        <button type="button" class="meta-comment-trigger"
-                            onclick="toggleCommentPanel({{ $post->id }})">
-                            {{ $totalComments }} bình luận
-                        </button>
+
+                        <a href="{{ route('posts.show', $post->id) }}"
+                            style="color: var(--text-gray); text-decoration: none; font-size: 14px;">
+                            {{ $post->comments->count() }} bình luận
+                        </a>
                     </div>
 
-                    <div class="post-footer post-footer-actions"
-                        style="display: flex; justify-content: space-between; padding: 10px 0; border-top: 1px solid var(--border-color);">
-
+                    <div class="post-footer-actions"
+                        style="display: flex; justify-content: space-between; padding: 10px 0;">
                         <div class="reaction-wrapper" style="position: relative; display: inline-block; flex: 1;">
-                            <div class="reaction-box shadow-sm border" style="margin-bottom: -3px;">
+                            <div class="reaction-box shadow-sm border" style="margin-bottom: -3px; display: none;">
                                 @foreach (['like' => '👍', 'love' => '❤️', 'haha' => '😆', 'wow' => '😮', 'sad' => '😢', 'angry' => '😡'] as $type => $emoji)
                                     <form action="{{ route('posts.reaction.toggle', $post->id) }}" method="POST"
                                         class="d-inline">
@@ -210,7 +204,7 @@
                                 @csrf
                                 <input type="hidden" name="type" value="like">
                                 <button type="submit" class="btn-main-action {{ $myReaction ? 'is-active' : '' }}"
-                                    style="width: 100%; display: flex; justify-content: center; align-items: center; gap: 8px; padding: 8px; border-radius: 6px; border: none; background: transparent; font-weight: 600; color: var(--text-gray); cursor: pointer;">
+                                    style="width: 100%; border: none; background: transparent; font-weight: 600; color: var(--text-gray); cursor: pointer; padding: 8px;">
                                     @if ($myReaction)
                                         <span>{{ $reactionEmojiMap[$myReaction->type] ?? '👍' }}</span>
                                         {{ ucfirst($myReaction->type) }}
@@ -221,79 +215,68 @@
                             </form>
                         </div>
 
-                        <button type="button" class="post-footer-comment-btn"
-                            onclick="toggleCommentPanel({{ $post->id }})"
-                            style="flex: 1; display: flex; justify-content: center; align-items: center; gap: 8px; padding: 8px; border-radius: 6px; border: none; background: transparent; font-weight: 600; color: var(--text-gray); cursor: pointer;">
+                        <a href="{{ route('posts.show', $post->id) }}" class="btn-main-action"
+                            style="flex: 1; text-align: center; text-decoration: none; display: flex; justify-content: center; align-items: center; gap: 8px; color: var(--text-gray); font-weight: 600;">
                             <i class="fa-regular fa-comment"></i> Bình luận
-                        </button>
+                        </a>
 
-                        <form action="{{ route('posts.share', $post->id) }}" method="POST" class="post-footer-share"
-                            style="flex: 1;">
+                        <form action="{{ route('posts.share', $post->id) }}" method="POST" style="flex: 1;">
                             @csrf
                             <input type="hidden" name="content" value="">
-                            <button type="submit" class="post-footer-share-btn"
-                                style="width: 100%; display: flex; justify-content: center; align-items: center; gap: 8px; padding: 8px; border-radius: 6px; border: none; background: transparent; font-weight: 600; color: var(--text-gray); cursor: pointer;">
+                            <button type="submit" class="btn-main-action"
+                                style="width: 100%; border: none; background: transparent; font-weight: 600; color: var(--text-gray); cursor: pointer; padding: 8px;">
                                 <i class="fa-solid fa-share"></i> Chia sẻ
                             </button>
                         </form>
                     </div>
 
-                    <div id="comment-panel-{{ $post->id }}"
-                        class="comment-panel {{ session('open_comments_post_id') == $post->id ? 'is-open' : '' }}"
-                        data-post-id="{{ $post->id }}">
-                        @foreach ($topLevelComments as $comment)
-                            <div class="comment-block">
-                                <div class="comment-row">
-                                    <div>
-                                        <strong>{{ $comment->user->name }}</strong>: {{ $comment->content }}
-                                        <div class="comment-time">{{ $comment->created_at->diffForHumans() }}</div>
-                                    </div>
-                                    @if (Auth::id() === $comment->user_id || Auth::id() === $post->user_id)
-                                        <form action="{{ route('comments.destroy', $comment->id) }}" method="POST">@csrf
-                                            @method('DELETE') <button type="submit"
-                                                class="comment-delete-btn">Xóa</button></form>
-                                    @endif
-                                </div>
-
-                                @foreach ($comment->replies as $reply)
-                                    <div class="reply-row">
-                                        <div>
-                                            <strong>{{ $reply->user->name }}</strong>: {{ $reply->content }}
-                                            <div class="comment-time">{{ $reply->created_at->diffForHumans() }}</div>
-                                        </div>
-                                        @if (Auth::id() === $reply->user_id || Auth::id() === $post->user_id)
-                                            <form action="{{ route('comments.destroy', $reply->id) }}" method="POST">
-                                                @csrf @method('DELETE') <button type="submit"
-                                                    class="comment-delete-btn">Xóa</button></form>
-                                        @endif
-                                    </div>
-                                @endforeach
-
-                                <form action="{{ route('comments.store', $post->id) }}" method="POST"
-                                    class="reply-form">
-                                    @csrf
-                                    <input type="hidden" name="parent_id" value="{{ $comment->id }}">
-                                    <input type="text" name="content"
-                                        placeholder="Trả lời {{ $comment->user->name }}..." required>
-                                    <button type="submit" class="btn-post">Trả lời</button>
-                                </form>
+                    <div id="reactionsModal-{{ $post->id }}" class="fb-modal"
+                        style="display: none; align-items: center; justify-content: center; z-index: 1050;">
+                        <div class="modal-content"
+                            style="max-width: 400px; width: 100%; border-radius: 10px; overflow: hidden; box-shadow: 0 4px 15px rgba(0,0,0,0.2);">
+                            <div class="modal-header"
+                                style="display: flex; justify-content: space-between; align-items: center; padding: 15px; border-bottom: 1px solid #ddd; background: #fff;">
+                                <h3 style="margin: 0; font-size: 18px; font-weight: 600;">Cảm xúc</h3>
+                                <span class="close-modal" onclick="closeReactionsModal({{ $post->id }})"
+                                    style="cursor: pointer; font-size: 24px; color: #666; line-height: 1;">&times;</span>
                             </div>
-                        @endforeach
-
-                        <form action="{{ route('comments.store', $post->id) }}" method="POST"
-                            class="comment-main-form">
-                            @csrf
-                            <input type="text" id="comment-input-{{ $post->id }}" name="content"
-                                placeholder="Viết bình luận..." autocomplete="off">
-                            <button type="submit" class="btn-post">Gửi</button>
-                        </form>
+                            <div class="modal-body"
+                                style="max-height: 300px; overflow-y: auto; padding: 0; background: #fff;">
+                                @if ($post->reactions->count() > 0)
+                                    @foreach ($post->reactions as $reaction)
+                                        <div
+                                            style="display: flex; align-items: center; padding: 10px 15px; border-bottom: 1px solid #f0f2f5;">
+                                            <div style="position: relative; margin-right: 12px;">
+                                                <img src="{{ $reaction->user->avatar ? (filter_var($reaction->user->avatar, FILTER_VALIDATE_URL) ? $reaction->user->avatar : asset('storage/' . $reaction->user->avatar)) : asset('images/default-avatar.png') }}"
+                                                    style="width: 40px; height: 40px; border-radius: 50%; object-fit: cover;">
+                                                <div
+                                                    style="position: absolute; bottom: -2px; right: -2px; background: white; border-radius: 50%; width: 18px; height: 18px; display: flex; align-items: center; justify-content: center; box-shadow: 0 1px 3px rgba(0,0,0,0.2); font-size: 10px;">
+                                                    {{ $reactionEmojiMap[$reaction->type] ?? '👍' }}
+                                                </div>
+                                            </div>
+                                            <a href="{{ route('profile.show', $reaction->user->id) }}"
+                                                style="text-decoration: none; color: #050505; font-weight: 600; font-size: 15px;">
+                                                {{ $reaction->user->name }}
+                                            </a>
+                                        </div>
+                                    @endforeach
+                                @else
+                                    <div style="padding: 20px; text-align: center; color: #65676B;">Chưa có cảm xúc nào.
+                                    </div>
+                                @endif
+                            </div>
+                        </div>
                     </div>
                 </div>
             @endforeach
+
+            <div class="feed-pagination card">
+                {{ $posts->links() }}
+            </div>
         </main>
 
         <aside class="sidebar-right">
-            <h4 style="color: var(--text-gray); margin-bottom: 15px; padding-left: 5px;">Bạn bè</h4>
+            <h4 style="color: var(--text-gray); margin-bottom: 15px; padding-left: 5px;">Người liên hệ</h4>
             @forelse($friends as $friend)
                 <div class="contact-item"
                     style="display: flex; align-items: center; gap: 10px; padding: 8px; border-radius: 8px; transition: background-color 0.2s;">
@@ -305,21 +288,11 @@
                             style="position: absolute; bottom: 0; right: 0; width: 12px; height: 12px; background-color: #31a24c; border: 2px solid white; border-radius: 50%; display: none;">
                         </div>
                     </div>
-
                     <a href="{{ route('profile.show', $friend->id) }}"
                         style="flex: 1; font-weight: 500; color: #050505; text-decoration: none;">
                         <span>{{ $friend->name }}</span>
                     </a>
-
                     <div style="display: flex; gap: 6px; margin-left: auto;">
-                        <form action="{{ route('messages.start', $friend->id) }}" method="POST" style="margin: 0;">
-                            @csrf
-                            <button type="submit"
-                                style="border: none; background: #e4e6eb; color: #050505; width: 32px; height: 32px; border-radius: 50%; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: 0.2s;"
-                                title="Nhắn tin">
-                                <i class="fa-brands fa-facebook-messenger"></i>
-                            </button>
-                        </form>
                         <form action="{{ route('friends.remove', $friend->id) }}" method="POST" style="margin: 0;">
                             @csrf @method('DELETE')
                             <button type="submit"
@@ -337,4 +310,39 @@
             @endforelse
         </aside>
     </div>
+
+    <script>
+        // JS Modal Cảm Xúc (Kế thừa nguyên bản)
+        function openReactionsModal(postId) {
+            const modal = document.getElementById('reactionsModal-' + postId);
+            if (modal) modal.style.display = 'flex';
+        }
+
+        function closeReactionsModal(postId) {
+            const modal = document.getElementById('reactionsModal-' + postId);
+            if (modal) modal.style.display = 'none';
+        }
+        window.addEventListener('click', function(event) {
+            if (event.target.classList.contains('fb-modal') && event.target.id.startsWith('reactionsModal-')) {
+                event.target.style.display = 'none';
+            }
+        });
+
+        // CSS JS Post Modal
+        function openPostModal() {
+            document.getElementById('postModal').style.display = 'block';
+        }
+
+        function closePostModal() {
+            document.getElementById('postModal').style.display = 'none';
+        }
+
+        function toggleMenu(element) {
+            const menu = element.nextElementSibling;
+            document.querySelectorAll('.options-menu').forEach(m => {
+                if (m !== menu) m.classList.remove('active');
+            });
+            if (menu) menu.classList.toggle('active');
+        }
+    </script>
 @endsection

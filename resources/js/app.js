@@ -26,25 +26,45 @@ window.closePostModal = function () {
     }
 };
 
-window.toggleMenu = function (element) {
-    // Đóng tất cả các menu khác
-    document.querySelectorAll(".options-menu").forEach((menu) => {
-        if (menu !== element.nextElementSibling) {
-            menu.classList.remove("active");
-        }
+window.toggleMenu = function (dotButton) {
+    const menu = dotButton.nextElementSibling;
+
+    document.querySelectorAll(".options-menu").forEach((m) => {
+        if (m !== menu) m.classList.remove("active");
     });
-    // Bật menu hiện tại
-    const menu = element.nextElementSibling;
-    if (menu) {
-        menu.classList.toggle("active");
-    }
+
+    if (menu) menu.classList.toggle("active");
 };
 
 window.toggleCommentPanel = function (postId) {
-    const panel = document.getElementById(`comment-panel-${postId}`);
-    if (panel) {
-        panel.classList.toggle("is-open");
+    const panel = document.getElementById("comment-panel-" + postId);
+    if (!panel) return;
+
+    const isOpen = panel.classList.toggle("is-open");
+    document
+        .querySelectorAll('[aria-controls="comment-panel-' + postId + '"]')
+        .forEach(function (el) {
+            el.setAttribute("aria-expanded", isOpen ? "true" : "false");
+        });
+
+    if (isOpen) {
+        const input = document.getElementById("comment-input-" + postId);
+        if (input) {
+            input.focus();
+        }
     }
+};
+
+window.toggleProfileMenu = function (event) {
+    event.stopPropagation();
+    const dropdown = document.getElementById("profileDropdown");
+
+    if (!dropdown) return;
+
+    dropdown.classList.toggle("active");
+    document
+        .querySelectorAll(".options-menu")
+        .forEach((m) => m.classList.remove("active"));
 };
 
 window.previewFiles = function (input) {
@@ -91,21 +111,30 @@ window.onclick = function (event) {
     }
 };
 
-document.addEventListener("DOMContentLoaded", function() {
+document.addEventListener("DOMContentLoaded", function () {
     if (window.Echo) {
-        window.Echo.join('online')
+        window.Echo.join("online")
             .here((users) => {
-                users.forEach(user => {
-                    document.querySelectorAll(`.user-status-${user.id}`).forEach(el => el.classList.add('online'));
+                users.forEach((user) => {
+                    document
+                        .querySelectorAll(`.user-status-${user.id}`)
+                        .forEach((el) => el.classList.add("online"));
                 });
             })
             .joining((user) => {
-                document.querySelectorAll(`.user-status-${user.id}`).forEach(el => el.classList.add('online'));
+                document
+                    .querySelectorAll(`.user-status-${user.id}`)
+                    .forEach((el) => el.classList.add("online"));
             })
             .leaving((user) => {
-                document.querySelectorAll(`.user-status-${user.id}`).forEach(el => el.classList.remove('online'));
+                document
+                    .querySelectorAll(`.user-status-${user.id}`)
+                    .forEach((el) => el.classList.remove("online"));
             });
     } else {
-        console.warn("Laravel Echo chưa được khởi tạo. Hãy kiểm tra lại file bootstrap.js");
+        console.warn(
+            "Laravel Echo chưa được khởi tạo. Hãy kiểm tra lại file bootstrap.js",
+        );
     }
 });
+// JS cho phần share //
