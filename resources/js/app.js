@@ -128,6 +128,12 @@ window.onclick = function (event) {
         window.closePostModal();
     }
 
+    // Đóng share modal nếu click ra ngoài
+    if (event.target.classList && event.target.classList.contains('fb-modal') && event.target.id && event.target.id.startsWith('shareModal-')) {
+        event.target.style.display = 'none';
+        document.body.style.overflow = 'auto';
+    }
+
     // Đóng dropdown menu nếu click ra ngoài
     if (
         !event.target.matches(".fa-ellipsis") &&
@@ -136,6 +142,22 @@ window.onclick = function (event) {
         document.querySelectorAll(".options-menu").forEach((menu) => {
             menu.classList.remove("active");
         });
+    }
+};
+
+window.openShareModal = function (postId) {
+    const modal = document.getElementById('shareModal-' + postId);
+    if (modal) {
+        modal.style.display = 'flex';
+        document.body.style.overflow = 'hidden';
+    }
+};
+
+window.closeShareModal = function (postId) {
+    const modal = document.getElementById('shareModal-' + postId);
+    if (modal) {
+        modal.style.display = 'none';
+        document.body.style.overflow = 'auto';
     }
 };
 
@@ -165,4 +187,3 @@ document.addEventListener("DOMContentLoaded", function () {
         );
     }
 });
-// JS cho phần share //

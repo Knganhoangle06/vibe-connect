@@ -243,6 +243,9 @@
             if (event.target.classList.contains('fb-modal') && event.target.id.startsWith('reactionsModal-')) {
                 event.target.style.display = 'none';
             }
+            if (event.target.classList.contains('fb-modal') && event.target.id.startsWith('shareModal-')) {
+                event.target.style.display = 'none';
+            }
         });
     </script>
 @endsection

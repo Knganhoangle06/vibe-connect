@@ -26,10 +26,12 @@ return new class extends Migration
             $table->string('avatar')->nullable();
             $table->string('background')->nullable();
 
+            $table->boolean('is_blocked')->default(false);
+
             $table->rememberToken();
             $table->timestamps();
         });
-        
+
         Schema::create('password_reset_tokens', function (Blueprint $table) {
             $table->string('email')->primary();
             $table->string('token');
